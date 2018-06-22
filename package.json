@@ -1,0 +1,28 @@
+{
+  "name": "pcalc",
+  "version": "0.1.0",
+  "description": "simple bayes-net probability calculator for use in web text editors",
+  "main": "pcalc.js",
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RdR1024/pcalc.git"
+  },
+  "keywords": [
+    "probability",
+    "calculator",
+    "bayesnet",
+    "editor"
+  ],
+  "author": "Richard de Rozario",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RdR1024/pcalc/issues"
+  },
+  "homepage": "https://github.com/RdR1024/pcalc#readme",
+  "devDependencies": {
+    "jest": "^23.1.0"
+  }
+}
