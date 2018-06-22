@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Welcome to pcalc’s documentation! &#8212; pcalc 0.9.0 documentation</title>
+    <title>Welcome to pcalc’s source code documentation! &#8212; pcalc 0.9.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -32,8 +32,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-pcalc-s-documentation">
-<h1>Welcome to pcalc’s documentation!<a class="headerlink" href="#welcome-to-pcalc-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-pcalc-s-source-code-documentation">
+<h1>Welcome to pcalc’s source code documentation!<a class="headerlink" href="#welcome-to-pcalc-s-source-code-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 </div>
@@ -44,12 +44,13 @@
 <li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
 <li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
 </ul>
-<p>## the probability calculator</p>
+<div class="section" id="the-main-interface-to-the-probability-calculator">
+<h2>The main interface to the probability calculator<a class="headerlink" href="#the-main-interface-to-the-probability-calculator" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="calcvars">
 <code class="descname">calcvars</code><span class="sig-paren">(</span><em>Content</em><span class="sig-paren">)</span><a class="headerlink" href="#calcvars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in &lt;code&gt;…&lt;/code&gt; tags.</p>
-<p>Broadly, calcvars first uses :func: <cite>tickconvert</cite> to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called &lt;fi&gt; for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.</p>
+<p>Broadly, calcvars first uses <code class="xref js js-func docutils literal notranslate"><span class="pre">tickconvert()</span></code> to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called &lt;fi&gt; for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.</p>
 <p>Calcvars is a “top level” function that you can play with from the node commandline.  So, start node and <cite>.load pcalc.js</cite>. Then, try <cite>calcvars(“&lt;p&gt;`probability of Y given X is 50%`&lt;/p&gt;&lt;p&gt;`probability of X is 50%`&lt;/p&gt;&lt;p&gt;So, the `%probability of Y?`&lt;/p&gt;”)</cite>. The result will be a string with html text, where the backticks have been replaced by html <cite>&lt;code&gt;</cite> tags, including <cite>&lt;span&gt;</cite> tags for formulas and results.  The formula and result classes have a suffix of ‘A’, ‘B’ or ‘C’. These indicate respectively whether the formula is an “assignment” (i.e. has an “=” or the keyword “is”), or a formula that needs hiding as soon as a result is available, or a formula that needs display together with the result.  Having different class names for each of these cases makes it easy to control the display with stylesheets.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -70,7 +71,8 @@
 <dl class="function">
 <dt id="calcs">
 <code class="descname">calcs</code><span class="sig-paren">(</span><em>fs</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#calcs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Process a (sorted) list of formulas of the structure <cite>[[h,fid,formula]…]</cite>, where h is the sort key (variable dependency “height”), <cite>fid</cite> is the formula identifier of the form <cite>f01</cite>, and <cite>formula</cite> is a string with the formula text in the pcalc syntax.</p>
+<dd><p>Process a (sorted) list of formulas of the structure <cite>[[h,fid,formula]…]</cite>, where <cite>h</cite> is the sort key (variable dependency “height”), <cite>fid</cite> is the formula identifier of the form <cite>f01</cite>, and <cite>formula</cite> is a string with the formula text in the pcalc syntax.</p>
+<p>The sorted list will have two major groups of probability formulas: assignments and calculations.  Assignments are processed first and used to build the equivalent of a Bayes network.  This network is then “completed” using <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code>. Among other things, the completor function checks if any conditional variable has an incomplete set of conditions, in which case it uses a “noisy-or” procedure to complete the conditions.  The completor function also makes a list of variables that each conditional variable depends on, and binary-count ordered probabilities for all combinations of those variables.  All this is stored in the Net object, whose reference was passed into the calcs function.   When the Net object is complete, the calcs function will calculate the results of the remaining calculation functions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -81,7 +83,7 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – the calcs result is an object with formula ids as keys and the formula result as value – only for formulas that actually have results. result structure: <cite>{‘f0’:res0, ‘f1’:res1,…}</cite></p>
 </td>
 </tr>
 </tbody>
@@ -91,7 +93,10 @@
 <dl class="function">
 <dt id="sortfs">
 <code class="descname">sortfs</code><span class="sig-paren">(</span><em>Fs</em><span class="sig-paren">)</span><a class="headerlink" href="#sortfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort formulas in order of least dependency chain of variables. Given an object  <cite>Fs={ ‘f1’:{‘F’:’prob X=0.5’}, ‘f2’:{‘F’: ‘prob Y=0.5’}…}</cite> return <cite>[[height,fid,F]…]</cite></p>
+<dd><p>Sort formulas in order of least dependency chain of variables. Given an object  <cite>Fs={ ‘f1’:{‘F’:’prob X=0.5’}, ‘f2’:{‘F’: ‘prob Y=0.5’}…}</cite> return <cite>[[height,fid,F]…</cite></p>
+<p>The “least dependency chain” is the recursively calculated length of variables that appear in the conditions that a variable depends on.  A simple definition like <cite>pr X=0.5</cite> means that the variable X does not depend on any  other variable, and so has a length of zero.  In <cite>pr Y given X=0.5</cite>, the variable Y depends on X, and so has a length of 1.  In <cite>pr Z given X or Y = 0.7</cite>, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.</p>
+<p>Along the way, the sort function also creates a global object called <a class="reference internal" href="#Dlist" title="Dlist"><code class="xref js js-func docutils literal notranslate"><span class="pre">Dlist()</span></code></a>, which contains a dependency list for each variable.  For example, {‘X’:null, ‘Y’:[‘X’], ‘Z’:[‘X’,’Y’]}.   The object is global and exported, in order to support external modules such as the diagram generator.  Internally, the sort routine uses Sets to update the Dlist (to avoid appending duplicate variables), but later converts the Dlist back to a simple object.</p>
+<p>The relationship between Dlist and sorting the formulas is that a formula height is the height of its highest variable (as with the X,Y,Z example above).  So, first we need to calculate the height of each variable in a formula, and then determine the highest of those variables.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -101,13 +106,42 @@
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">result is a sorted array of formulas, with “variable dependency height” as the sorting key</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – result is a sorted array of formulas <cite>[[h,fid,formula]…]</cite>, with an integer (h) “variable dependency height” as the sorting key</p>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="height">
+<code class="descname">height</code><span class="sig-paren">(</span><em>node</em>, <em>D</em>, <em>curpath</em><span class="sig-paren">)</span><a class="headerlink" href="#height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a node name (key) and a simple dependency structure (D), recursively calculate the dependency length for the node. Keep track which nodes have already been visited (curpath), because we don’t want to get stuck in infinite loops.  As a result, the dependency structure is treated as an acyclic graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>node</strong> (<em>string</em>) – the node in the graph for which we want to calculate the “height”</li>
+<li><strong>D</strong> (<em>object</em>) – a simple dependency structure, e.g. {‘X’:null, ‘Y’:[‘X’], ‘Z’:[‘X’,’Y’]}</li>
+<li><strong>curpath</strong> (<em>array</em>) – a list of already visited nodes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>integer</strong> – integer that represents the dependency “height”, where 0 is “no dependencies”</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Dlist">
+<code class="descname">Dlist</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Dlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>The externally exposed object Dlist provides a simple dependency structure for variables in a probability network. For example, if Dlist contains the following: {‘X’:null,’Y’:[‘X’],’Z’:[‘X’,’Y’]}, then this represents that variable X has no dependencies, that Y depends on X and that Z depends on both X and Y.</p>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -119,8 +153,11 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to pcalc’s documentation!</a></li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#">Welcome to pcalc’s source code documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>
+<li><a class="reference internal" href="#the-main-interface-to-the-probability-calculator">The main interface to the probability calculator</a></li>
+</ul>
+</li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>

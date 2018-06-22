@@ -5,7 +5,12 @@ var print = P.print;
 var concat = P.concat;
 /***************************************************************/
 
+/**
+ * The externally exposed object Dlist provides a simple dependency structure for variables in a probability network. For example, if Dlist contains the following: {'X':null,'Y':['X'],'Z':['X','Y']}, then this represents that variable X has no dependencies, that Y depends on X and that Z depends on both X and Y.
+ */
 var Dlist={};   // global variable dependency list
+
+
 //var US={"id":"us",nonp:{}};   // expose for debugging
 
 /*********************************************************************
@@ -24,7 +29,7 @@ var Black = "`pr Plane=10%` `pr Drone=5%` `pr Intercept:Plane=85%` `pr Intercept
 /**
  * Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in <code>...</code> tags. 
  * 
- * Broadly, calcvars first uses :func: `tickconvert` to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called <fi> for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.
+ * Broadly, calcvars first uses :func:`tickconvert` to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called <fi> for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.
  * 
  * Calcvars is a "top level" function that you can play with from the node commandline.  So, start node and `.load pcalc.js`. Then, try `calcvars("<p>\`probability of Y given X is 50%\`</p><p>\`probability of X is 50%\`</p><p>So, the \`%probability of Y?\`</p>")`. The result will be a string with html text, where the backticks have been replaced by html `<code>` tags, including `<span>` tags for formulas and results.  The formula and result classes have a suffix of 'A', 'B' or 'C'. These indicate respectively whether the formula is an "assignment" (i.e. has an "=" or the keyword "is"), or a formula that needs hiding as soon as a result is available, or a formula that needs display together with the result.  Having different class names for each of these cases makes it easy to control the display with stylesheets.
  * 
@@ -65,10 +70,13 @@ function calcvars( Content){
 // calculate all formulas in sorted formula list: [[h,fid,formula]...]
 // return result list: {'f0':res0, 'f1':res1,...}
 /**
- * Process a (sorted) list of formulas of the structure `[[h,fid,formula]...]`, where h is the sort key (variable dependency "height"), `fid` is the formula identifier of the form `f01`, and `formula` is a string with the formula text in the pcalc syntax.
+ * Process a (sorted) list of formulas of the structure `[[h,fid,formula]...]`, where `h` is the sort key (variable dependency "height"), `fid` is the formula identifier of the form `f01`, and `formula` is a string with the formula text in the pcalc syntax.
+ * 
+ * The sorted list will have two major groups of probability formulas: assignments and calculations.  Assignments are processed first and used to build the equivalent of a Bayes network.  This network is then "completed" using :func:`completor`. Among other things, the completor function checks if any conditional variable has an incomplete set of conditions, in which case it uses a "noisy-or" procedure to complete the conditions.  The completor function also makes a list of variables that each conditional variable depends on, and binary-count ordered probabilities for all combinations of those variables.  All this is stored in the Net object, whose reference was passed into the calcs function.   When the Net object is complete, the calcs function will calculate the results of the remaining calculation functions.
+ * 
  * @param {array} fs - sorted list of formulas 
  * @param {object} Net - a probability network object, for example `{"id":"mynet", nonp:{}, "X":{true:0.5}, "Y":[[0.6, "X"],[0.2, [not,"X"]]] }`
- * @return the calcs result is an object with formula ids as keys and the formula result as value -- only for formulas that actually have results. result structure: `{'f0':res0, 'f1':res1,...}`
+ * @return {object} the calcs result is an object with formula ids as keys and the formula result as value -- only for formulas that actually have results. result structure: `{'f0':res0, 'f1':res1,...}`
  */
 function calcs(fs, Net){
 
@@ -108,9 +116,16 @@ function calcs(fs, Net){
 
 
 /**
- * Sort formulas in order of least dependency chain of variables. Given an object  `Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}` return `[[height,fid,F]...]`
+ * Sort formulas in order of least dependency chain of variables. Given an object  `Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}` return `[[height,fid,F]...`
+ * 
+ * The "least dependency chain" is the recursively calculated length of variables that appear in the conditions that a variable depends on.  A simple definition like `pr X=0.5` means that the variable X does not depend on any  other variable, and so has a length of zero.  In `pr Y given X=0.5`, the variable Y depends on X, and so has a length of 1.  In `pr Z given X or Y = 0.7`, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.
+ * 
+ * Along the way, the sort function also creates a global object called :func:`Dlist`, which contains a dependency list for each variable.  For example, {'X':null, 'Y':['X'], 'Z':['X','Y']}.   The object is global and exported, in order to support external modules such as the diagram generator.  Internally, the sort routine uses Sets to update the Dlist (to avoid appending duplicate variables), but later converts the Dlist back to a simple object.
+ * 
+ * The relationship between Dlist and sorting the formulas is that a formula height is the height of its highest variable (as with the X,Y,Z example above).  So, first we need to calculate the height of each variable in a formula, and then determine the highest of those variables.
+ * 
  * @param {object} Fs - object that contains formulas
- * @return result is a sorted array of formulas, with "variable dependency height" as the sorting key
+ * @return {array} result is a sorted array of formulas `[[h,fid,formula]...]`, with an integer (h) "variable dependency height" as the sorting key
  */
 function sortfs(Fs){
 //  var Dlist={};     // variable dependency list, usually declared globally
@@ -174,7 +189,13 @@ function sortfs(Fs){
 
 }
 
-// node height in a directed acyclic graph
+/** Given a node name (key) and a simple dependency structure (D), recursively calculate the dependency length for the node. Keep track which nodes have already been visited (curpath), because we don't want to get stuck in infinite loops.  As a result, the dependency structure is treated as an acyclic graph.
+ * 
+ * @param {string} node - the node in the graph for which we want to calculate the "height"
+ * @param {object} D - a simple dependency structure, e.g. {'X':null, 'Y':['X'], 'Z':['X','Y']}
+ * @param {array} curpath - a list of already visited nodes
+ * @return {integer} integer that represents the dependency "height", where 0 is "no dependencies"
+*/
 function height(node,D,curpath){
     if(!(node in D) || D[node]==[]) return 0;
     // if(curpath.has(node)) throw "error (dependency loop) for "+node;
