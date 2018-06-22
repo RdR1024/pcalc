@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="Richard De Rozario">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Answers to the Exercises - Probability Calculator</title>
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+   
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+   <script src="../../js/pcalc.js"></script>
+   <script src="../../js/ckeditor/ckeditor.js"></script>
+   <script src="../../js/pcalcio.js"></script>
+ 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../..">Probability Calculator</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            
+<li >
+    <a href="../Usage/">How to use the calculator</a>
+</li>
+                            
+<li >
+    <a href="../ProbabilityIntro/">Simple Probability Calculations</a>
+</li>
+                            
+<li >
+    <a href="../ComboProbs/">Combinations of Probabilities</a>
+</li>
+                            
+<li >
+    <a href="../ConditionalProbs/">Conditional Probabilities</a>
+</li>
+                            
+<li >
+    <a href="../Networks/">Networks of Probabilities</a>
+</li>
+                            
+<li class="active">
+    <a href="./">Answers to the Exercises</a>
+</li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            
+<li >
+    <a href="../../examples/mammogram/">Mammogram</a>
+</li>
+                            
+<li >
+    <a href="../../examples/mammo+blood/">Mammogram + Blood Test</a>
+</li>
+                            
+<li >
+    <a href="../../examples/cookies/">CookieJar</a>
+</li>
+                            
+<li >
+    <a href="../../examples/wetgrass/">WetGrass</a>
+</li>
+                            
+<li >
+    <a href="../../examples/spam/">Spam</a>
+</li>
+                            
+<li >
+    <a href="../../examples/firefox/">Firefox</a>
+</li>
+                        </ul>
+                    </li>
+                    <li >
+                        <a href="../../About/">About</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li >
+                        <a rel="next" href="../Networks/">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../../examples/mammogram/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/RdR1024/pcalc/edit/master/docs/UserGuide/Answers.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#answers-to-the-exercises">Answers to the exercises</a></li>
+            <li><a href="#exercises-1">Exercises (1)</a></li>
+            <li><a href="#exercises-2">Exercises (2)</a></li>
+            <li><a href="#exercises-3">Exercises (3)</a></li>
+            <li><a href="#exercises-4">Exercises (4)</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="answers-to-the-exercises">Answers to the exercises</h1>
+<p><em>Note: click the "show formulas" button to show some of the formulas</em></p>
+<h2 id="exercises-1">Exercises (1)</h2>
+<ol>
+<li>`probability of Rafflewin is 5/100` and next `probability of Rafflewin`</li>
+<li>`probability of no Rafflewin`</li>
+<li>`probability of SaturdayRain is 200/1000`</li>
+<li>`probability of no SaturdayRain`</li>
+<li>`probability of ProjectFail is 20/100`</li>
+</ol>
+<h2 id="exercises-2">Exercises (2)</h2>
+<ol>
+<li>`probability of RainSaturday and RainSunday`</li>
+<li>`probability of RainSaturday and no RainSunday`</li>
+</ol>
+<h2 id="exercises-3">Exercises (3)</h2>
+<p><img alt="OverheatIndicator" src="../../img/OverheatIndicator.png" width="50%" /></p>
+<ol>
+<li>The probability of engine overheating: `prob Overheat=25%` The probability of indicator lighting up, given that the engine overheats: `prob IndicatorOn given Overheat = 85%`</li>
+<li>`prob IndicatorOn`</li>
+</ol>
+<h2 id="exercises-4">Exercises (4)</h2>
+<h3 id="part-1">Part 1</h3>
+<ol>
+<li>The probability of the analyst being correct <em>depends</em> on Ann, Bob, or Charlie being correct (to different degrees).  Therefore, if the analyst is <em>known</em> to be correct, then chances are that one or more of them was correct.  All of the probabilities of being correct for Ann, Bob, and Charlie go up.</li>
+<li>`percent prob BobCorrect given AnalystCorrect`</li>
+<li>The probability of the analyst being correct depends less on Bob than it does on Ann</li>
+</ol>
+<h3 id="part-2">Part 2</h3>
+<p><img alt="Smuggling" src="../../img/Smuggling.png" width="40%" /></p>
+<ul>
+<li>`probability of APurchase is 80%`</li>
+<li>`probability of BShipment given APurchase is 70%`</li>
+<li>`probability of CShipment given APurchase is 30%`</li>
+<li>`probability of DNotice given BShipment is 80%`</li>
+<li>
+<p>`probability of DNotice given CShipment is 20%`</p>
+</li>
+<li>
+<p>`percent probability of DNotice`%</p>
+</li>
+<li>The percent chance of APurchase given DNotice is `percent chance of APurchase given DNotice?`%, because if the shipment was noticed then it could only have come from A (in this problem statement).</li>
+<li>`percent prob BShipment given DNotice?`</li>
+</ul></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>var base_url = '../..';</script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/require.js"></script>
+        <script src="../../search/search.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&larr;</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&rarr;</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </body>
+</html>
