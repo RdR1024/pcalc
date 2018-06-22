@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="Richard De Rozario">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Firefox - Probability Calculator</title>
+        <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+   
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+   <script src="../../js/pcalc.js"></script>
+   <script src="../../js/ckeditor/ckeditor.js"></script>
+   <script src="../../js/pcalcio.js"></script>
+ 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="../..">Probability Calculator</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                    <li >
+                        <a href="../..">Home</a>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">User Guide <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            
+<li >
+    <a href="../../UserGuide/Usage/">How to use the calculator</a>
+</li>
+                            
+<li >
+    <a href="../../UserGuide/ProbabilityIntro/">Simple Probability Calculations</a>
+</li>
+                            
+<li >
+    <a href="../../UserGuide/ComboProbs/">Combinations of Probabilities</a>
+</li>
+                            
+<li >
+    <a href="../../UserGuide/ConditionalProbs/">Conditional Probabilities</a>
+</li>
+                            
+<li >
+    <a href="../../UserGuide/Networks/">Networks of Probabilities</a>
+</li>
+                            
+<li >
+    <a href="../../UserGuide/Answers/">Answers to the Exercises</a>
+</li>
+                        </ul>
+                    </li>
+                    <li class="dropdown active">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Examples <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            
+<li >
+    <a href="../mammogram/">Mammogram</a>
+</li>
+                            
+<li >
+    <a href="../mammo+blood/">Mammogram + Blood Test</a>
+</li>
+                            
+<li >
+    <a href="../cookies/">CookieJar</a>
+</li>
+                            
+<li >
+    <a href="../wetgrass/">WetGrass</a>
+</li>
+                            
+<li >
+    <a href="../spam/">Spam</a>
+</li>
+                            
+<li class="active">
+    <a href="./">Firefox</a>
+</li>
+                        </ul>
+                    </li>
+                    <li >
+                        <a href="../../About/">About</a>
+                    </li>
+                </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                        <i class="fa fa-search"></i> Search
+                    </a>
+                </li>
+                    <li >
+                        <a rel="next" href="../spam/">
+                            <i class="fa fa-arrow-left"></i> Previous
+                        </a>
+                    </li>
+                    <li >
+                        <a rel="prev" href="../../About/">
+                            Next <i class="fa fa-arrow-right"></i>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com/RdR1024/pcalc/edit/master/docs/examples/firefox.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                    </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#problem-description">Problem Description</a></li>
+            <li><a href="#preface">Preface</a></li>
+            <li><a href="#the-problem">The Problem</a></li>
+            <li><a href="#question-1">Question 1</a></li>
+            <li><a href="#question-2">Question 2</a></li>
+        <li class="main "><a href="#probability-calculator">Probability Calculator</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<p><img alt="Firefox Movie" src="../../img/firefox_movie.jpg" />
+We use Probability Calculator to solve the <a href="https://swarm-demo.eresearch.unimelb.edu.au/#/page/f9e915db-e267-41a8-9ce5-adf2a9f9177f">SWARM Firefox problem</a>.  First we will re-state the problem here so the page is self-contained.</p>
+<h1 id="problem-description">Problem Description</h1>
+<h2 id="preface">Preface</h2>
+<p>In the (<a href="https://www.rottentomatoes.com/m/firefox/">mediocre</a>) 1982 movie “Firefox” (based on the <a href="https://www.goodreads.com/book/show/1735608.Firefox">decent</a> 1977 thriller), US pilot Mitchell Gant steals the Firefox, a fictional top secret supersonic stealth aircraft developed by the Soviet Union.  He initially heads south ensuring he is seen by a commercial airliner before using the stealth properties of the plane to turn north unseen. His plan is to follow the Ural mountains to a clever refueling rendezvous before heading west. Here is our adaptation.</p>
+<h2 id="the-problem">The Problem</h2>
+<p>Imagine you are the Soviet general in charge of the northern defenses.  You know Gant was last seen heading south. However, your top analyst says Gant is trained in evasion, and suspects it was a diversion and that he is heading north. Here we will depart from the movie a bit to make an interesting but tractable decision problem.</p>
+<p>Gant has to go either north or south. You judge there is a 50% chance Gant went north, probably following the Ural mountains. Your team estimates it is three times as likely he is flying at low altitude than at high (i.e. odds are 3:1 in favor of low).</p>
+<p>You have two detection systems.</p>
+<p><strong>Acoustic detectors</strong>, known as “<strong>Big Ears</strong>.” These can detect a supersonic aircraft by picking up the sonic boom. Big Ears detects 95% of low-altitude supersonic targets, and 50% of high-altitude targets. It is unlikely any other aircraft would set them off right now, so there is only a 1% false alarm rate.</p>
+<p><strong>Radar</strong>. You know this radar works poorly against a target like Firefox. At best it has a 30% detection, when Firefox is up high presenting a broad target on a clear background. At low altitudes, detection is only 10%.  There is always a 5% false alarm rate, including both system noise, other aircraft, and occasional bird flocks.</p>
+<p>The sensors are been linked by a simple rules-based system made for
+detecting possible NATO stealth test flights in the north (the south
+is someone else’s problem):</p>
+<ol>
+<li>If Radar reports no contact, and BigEars report a supersonic footprint, say “Stealth”.</li>
+<li>Otherwise, say “No Stealth”.</li>
+</ol>
+<p>Your top analyst warns that this system was not designed for stealth as good as Firefox. There is little time to recalibrate for its overly conservative rules, so she intuitively adjusts:</p>
+<ul>
+<li>If the system says “Stealth” she will say “Firefox”. </li>
+<li>Else if the radar reports a contact, she will most likely (75%) say that it is “Firefox.” </li>
+<li>Otherwise, she is only 20% likely to say “Firefox”.</li>
+</ul>
+<h2 id="question-1">Question 1</h2>
+<p>Your analyst says “Not Firefox”.  What is the chance Gant was nevertheless in the north? Compare that with taking a non-stealth reading straight from the rules system?</p>
+<h2 id="question-2">Question 2</h2>
+<p>Gant knows he is taking the northern route. Which altitude would minimize his chance of being detected?</p>
+<h1 id="probability-calculator">Probability Calculator</h1>
+<p>This is the same problem described in
+<a href="https://docs.google.com/document/d/1ubeziPZl4mE5wINlXN-jZLl58oAfp9WEz2eejV21yqY/">Solving Probability Puzzles with Bayes Nets</a>
+and in the
+<a href="https://swarm-demo.eresearch.unimelb.edu.au/#/page/f9e915db-e267-41a8-9ce5-adf2a9f9177f">SWARM Demo Platform Firefox Problem</a>,
+but we analyze it slightly differently.</p>
+<ul>
+<li>Variable names reflect Calculator's requirement that everything is
+  True/False. We use similar variable names as in the Demo Platform, but ...</li>
+<li>We omit the <em>SystemStealth</em> variable just because we can: Calculator makes it easy to query that condition directly.</li>
+</ul>
+<p><img alt="Firefox Influence Diagram" src="../../img/firefox_net.png" /></p>
+<ul>
+<li><em>FirefoxNorth</em> and <em>AltitudeHigh</em> describe Gant's location and
+height. True if Gant goes north, or respectively if Gant flies at high altitude.</li>
+<li><em>BigEarsSupersonic</em> and <em>Radar</em> are true when those sensors detect something.</li>
+<li><em>AnalystFirefox</em> is true when the analyst says "Firefox".</li>
+</ul>
+<p>Time to use the calculator.</p>
+<!-- PUT STARTING CONTENT FOR THE EDITOR BETWEEN THE <textarea>...</textarea> TAGS-->
+
+<form id="form1">
+  <textarea id="editor1" name="editor1" cols=80 rows="60">
+  <h2>Firefox problem</h2>
+  First, summarize what we know about these 5 variables.
+<table border="1" cellpadding="1" cellspacing="1">
+ <thead>
+  <tr>
+   <th scope="col">Information</th>
+   <th scope="col">Probability</th>
+  </tr>
+ </thead>
+ <tbody>
+  <tr>
+   <td>
+   <p>50% chance Gant went north</p>
+   </td>
+   <td>`prob FirefoxNorth = 50%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>...three times as likely he is flying at low altitude than at high</p>
+   </td>
+   <td>`prob AltitudeHigh=25%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>Big Ears detect 95% of low-altitude supersonic targets</p>
+   </td>
+   <td>`prob BigEarsSupersonic given FirefoxNorth and -AltitudeHigh = 95%`</td>
+  </tr>
+  <tr>
+   <td>[Big Ears detects]&nbsp;50% of high-altitude targets</td>
+   <td>`prob BigEarsSupersonic given FirefoxNorth and  AltitudeHigh=50%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>[Big Ears has ] a 1% background false alarm rate</p>
+   </td>
+   <td>`prob BigEarsSupersonic given not FirefoxNorth = 1%`</td>
+  </tr>
+  <tr>
+   <td>[Radar]&nbsp;has a 30% detection, when Firefox is up high&nbsp;</td>
+   <td>`prob RadarContact given FirefoxNorth and  AltitudeHigh = 30%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>[Radar] At low altitudes, detection is only 10%</p>
+   </td>
+   <td>`prob RadarContact given FirefoxNorth and -AltitudeHigh = 10%`</td>
+  </tr>
+  <tr>
+   <td>[Radar has ]&nbsp;always a 5% false alarm rate</td>
+   <td>`prob RadarContact given not FirefoxNorth = 5%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>If Radar reports contact:</p>
+   <p>&nbsp; &nbsp; [Analyst ] likely (75%) says &ldquo;Firefox&rdquo;</p>
+   </td>
+   <td>`prob AnalystFirefox given RadarContact = 75%`</td>
+  </tr>
+  <tr>
+   <td>
+   <p>If Radar reports no contact &amp; BigEars reports supersonic:</p>
+   <p>&nbsp; &nbsp;&nbsp;[Analyst] says &quot;Firefox&quot;</p>
+   </td>
+   <td>`prob AnalystFirefox given BigEarsSupersonic and no RadarContact = 100%`</td>
+  </tr>
+  <tr>
+   <td>[Analyst] only likely (20%) says &quot;Firefox&quot;, otherwise</td>
+   <td>`prob AnalystFirefox given not (RadarContact or BigEarsSupersonic) = 20%`</td>
+  </tr> 
+ </tbody>
+</table>
+<p>&nbsp;</p>
+<p>Sanity check: Chance of a radar report: `%prob RadarContact?`  (Should be 10%.)</p>
+<p>Q1a: probability that Gant is in the North, if analyst says &quot;not Firefox&quot;:
+`%prob FirefoxNorth given not AnalystFirefox?` (Should be 15%)</p>
+<p>Q1b: chance Gant is in the North if the system says "not firefox" (BigEars
+detection without Radar detection): `%prob FirefoxNorth given -BigEarsSupersonic or RadarContact?`  (Should be 22%.)</p>
+<p>Q2a: chance of detection for flying low: `%prob AnalystFirefox given FirefoxNorth and -AltitudeHigh?` (Should be 94%.)</p>
+<p>Q2b: chance of detection for flying high: `%prob AnalystFirefox given FirefoxNorth and AltitudeHigh?` (Should be 65%.)</p>
+<p>Clearly, if Gant is in the North, he should fly High, reducing
+his chance of being detected. Consider recalculating the error rates
+for that scenario. If you like game theory or optimization, you might
+want to find an optimal rule for the analyst to use.</p>
+</textarea>
+  <input id="CalcButton" type="button" value="Calculate" />
+  <script>activate_ckeditor("editor1","CalcButton");</script>
+</form>
+
+<p><br></p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>var base_url = '../..';</script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/require.js"></script>
+        <script src="../../search/search.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&larr;</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>&rarr;</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </body>
+</html>

@@ -1,0 +1,11 @@
+#!/bin/bash
+if test -e "${1%%.*}.md"
+then
+   echo "  ${1%%.*}.md --> ${1%%.*}.html"
+   sed -e 's/`/\\`/g' "${1%%.*}.md" > "${1%%.*}_1.md"
+   pandoc -s resrc/head.md "${1%%.*}_1.md" resrc/tail.md -o "${1%%.*}.html"
+   rm "${1%%.*}_1.md"
+else
+   echo "  ${1%%.*}.md does not exist"
+   echo "  '. makeh examples/mammogram' makes examples/mammogram.html from examples/mammogram.md."
+fi

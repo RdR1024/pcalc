@@ -1,0 +1,78 @@
+net
+{
+     node_size = (0 0);
+     name = "Firefox Binary";
+     tree = "(Firefox Location,North Sonic Detectors,North Radar,C4,C5,Firefox Altitude,C7)";
+     UnBBayes_Color_Probabilistic_Description = "-256";
+     UnBBayes_Color_Probabilistic_Explanation = "-16711936";
+}
+
+node North
+{
+     label = "Firefox Location";
+     position = (43 0);
+     states = ("North" "South");
+}
+
+node BigEars
+{
+     label = "North Sonic Detectors";
+     position = (252 0);
+     states = ("Supersonic" "--");
+}
+
+node Radar
+{
+     label = "North Radar";
+     position = (265 100);
+     states = ("Contact" "Nil");
+}
+
+node Firefox
+{
+     label = "C5";
+     position = (430 99);
+     states = ("Firefox" "Not Firefox");
+}
+
+node Low
+{
+     label = "Firefox Altitude";
+     position = (40 101);
+     states = ("Low" "High");
+}
+
+potential (North)
+{
+ data = ( 0.5 0.5 );
+}
+
+potential (BigEars | Low North)
+{
+ data = ((( 0.95 0.05 )
+( 0.01 0.99 ))
+(( 0.5 0.5 )
+( 0.01 0.99 )));
+}
+
+potential (Radar | Low North)
+{
+ data = ((( 0.1 0.9 )
+( 0.05 0.95 ))
+(( 0.3 0.7 )
+( 0.05 0.95 )));
+}
+
+potential (Firefox | BigEars Radar)
+{
+ data = ((( 0.75 0.25 )
+( 1.0 0.0 ))
+(( 0.75 0.25 )
+( 0.2 0.8 )));
+}
+
+potential (Low)
+{
+ data = ( 0.75 0.25 );
+}
+

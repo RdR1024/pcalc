@@ -1,0 +1,26 @@
+site_name: Probability Calculator
+docs_dir: 'content'
+site_dir: 'docs'
+site_author: 'Richard De Rozario'
+repo_url: https://github.com/RdR1024/pcalc
+theme:
+    name: mkdocs
+    custom_dir: theme_extras
+
+pages:
+- 'Home': 'index.md'
+- 'User Guide':
+    - 'How to use the calculator': 'UserGuide/Usage.md'
+    - 'Simple Probability Calculations': 'UserGuide/ProbabilityIntro.md'
+    - 'Combinations of Probabilities': 'UserGuide/ComboProbs.md'
+    - 'Conditional Probabilities': 'UserGuide/ConditionalProbs.md'
+    - 'Networks of Probabilities': 'UserGuide/Networks.md'
+    - 'Answers to the Exercises': 'UserGuide/Answers.md'
+- 'Examples':
+    - 'Mammogram': 'examples/mammogram.md'
+    - 'Mammogram + Blood Test': 'examples/mammo+blood.md'
+    - 'CookieJar': 'examples/cookies.md'
+    - 'WetGrass': 'examples/wetgrass.md'
+    - 'Spam': 'examples/spam.md'
+    - 'Firefox': 'examples/firefox.md'
+- 'About.md'
