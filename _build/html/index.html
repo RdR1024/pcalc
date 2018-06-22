@@ -49,6 +49,8 @@
 <dt id="calcvars">
 <code class="descname">calcvars</code><span class="sig-paren">(</span><em>Content</em><span class="sig-paren">)</span><a class="headerlink" href="#calcvars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in &lt;code&gt;…&lt;/code&gt; tags.</p>
+<p>Broadly, calcvars first uses :func: <cite>tickconvert</cite> to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called &lt;fi&gt; for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.</p>
+<p>Calcvars is a “top level” function that you can play with from the node commandline.  So, start node and <cite>.load pcalc.js</cite>. Then, try <cite>calcvars(“&lt;p&gt;`probability of Y given X is 50%`&lt;/p&gt;&lt;p&gt;`probability of X is 50%`&lt;/p&gt;&lt;p&gt;So, the `%probability of Y?`&lt;/p&gt;”)</cite>. The result will be a string with html text, where the backticks have been replaced by html <cite>&lt;code&gt;</cite> tags, including <cite>&lt;span&gt;</cite> tags for formulas and results.  The formula and result classes have a suffix of ‘A’, ‘B’ or ‘C’. These indicate respectively whether the formula is an “assignment” (i.e. has an “=” or the keyword “is”), or a formula that needs hiding as soon as a result is available, or a formula that needs display together with the result.  Having different class names for each of these cases makes it easy to control the display with stylesheets.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -65,7 +67,47 @@
 </table>
 </dd></dl>
 
-<p>The <cite>calcvars</cite> function is the main interface into the calculator.  It expects a text string and will process any formulas in that text string that are contained inside backticks.  The function returns a text string, but now with the formulas marked up inside <cite>&lt;code&gt;…&lt;/code&gt;</cite> html tags.  The format for the markup is as follows:</p>
+<dl class="function">
+<dt id="calcs">
+<code class="descname">calcs</code><span class="sig-paren">(</span><em>fs</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#calcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a (sorted) list of formulas of the structure <cite>[[h,fid,formula]…]</cite>, where h is the sort key (variable dependency “height”), <cite>fid</cite> is the formula identifier of the form <cite>f01</cite>, and <cite>formula</cite> is a string with the formula text in the pcalc syntax.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>fs</strong> (<em>array</em>) – sorted list of formulas</li>
+<li><strong>Net</strong> (<em>object</em>) – a probability network object, for example <cite>{“id”:”mynet”, nonp:{}, “X”:{true:0.5}, “Y”:[[0.6, “X”],[0.2, [not,”X”]]] }</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sortfs">
+<code class="descname">sortfs</code><span class="sig-paren">(</span><em>Fs</em><span class="sig-paren">)</span><a class="headerlink" href="#sortfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort formulas in order of least dependency chain of variables. Given an object  <cite>Fs={ ‘f1’:{‘F’:’prob X=0.5’}, ‘f2’:{‘F’: ‘prob Y=0.5’}…}</cite> return <cite>[[height,fid,F]…]</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Fs</strong> (<em>object</em>) – object that contains formulas</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">result is a sorted array of formulas, with “variable dependency height” as the sorting key</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 

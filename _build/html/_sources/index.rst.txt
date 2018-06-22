@@ -24,4 +24,6 @@ Indices and tables
 
 .. autofunction:: calcvars
 
-The `calcvars` function is the main interface into the calculator.  It expects a text string and will process any formulas in that text string that are contained inside backticks.  The function returns a text string, but now with the formulas marked up inside `<code>...</code>` html tags.  The format for the markup is as follows:
+.. autofunction:: calcs
+
+.. autofunction:: sortfs

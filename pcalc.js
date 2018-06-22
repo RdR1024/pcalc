@@ -22,7 +22,11 @@ var Black = "`pr Plane=10%` `pr Drone=5%` `pr Intercept:Plane=85%` `pr Intercept
 /********************************************************************/
 
 /**
- * Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in <code>...</code> tags.
+ * Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in <code>...</code> tags. 
+ * 
+ * Broadly, calcvars first uses :func: `tickconvert` to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called <fi> for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.
+ * 
+ * Calcvars is a "top level" function that you can play with from the node commandline.  So, start node and `.load pcalc.js`. Then, try `calcvars("<p>\`probability of Y given X is 50%\`</p><p>\`probability of X is 50%\`</p><p>So, the \`%probability of Y?\`</p>")`. The result will be a string with html text, where the backticks have been replaced by html `<code>` tags, including `<span>` tags for formulas and results.  The formula and result classes have a suffix of 'A', 'B' or 'C'. These indicate respectively whether the formula is an "assignment" (i.e. has an "=" or the keyword "is"), or a formula that needs hiding as soon as a result is available, or a formula that needs display together with the result.  Having different class names for each of these cases makes it easy to control the display with stylesheets.
  * 
  * @param {string} Content - text as html string, which may contain calculator formulas inside backticks
  * @return {string} same content is returned, but now formulas are marked up inside <code>...</code> tags, including possible results
@@ -60,6 +64,12 @@ function calcvars( Content){
 
 // calculate all formulas in sorted formula list: [[h,fid,formula]...]
 // return result list: {'f0':res0, 'f1':res1,...}
+/**
+ * Process a (sorted) list of formulas of the structure `[[h,fid,formula]...]`, where h is the sort key (variable dependency "height"), `fid` is the formula identifier of the form `f01`, and `formula` is a string with the formula text in the pcalc syntax.
+ * @param {array} fs - sorted list of formulas 
+ * @param {object} Net - a probability network object, for example `{"id":"mynet", nonp:{}, "X":{true:0.5}, "Y":[[0.6, "X"],[0.2, [not,"X"]]] }`
+ * @return the calcs result is an object with formula ids as keys and the formula result as value -- only for formulas that actually have results. result structure: `{'f0':res0, 'f1':res1,...}`
+ */
 function calcs(fs, Net){
 
     var Res={};
@@ -97,10 +107,11 @@ function calcs(fs, Net){
 }
 
 
-// Sort formulas in order of least dependency chain of variables
-// Given an object 
-//    Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}
-// return [[height,fid,F]...]
+/**
+ * Sort formulas in order of least dependency chain of variables. Given an object  `Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}` return `[[height,fid,F]...]`
+ * @param {object} Fs - object that contains formulas
+ * @return result is a sorted array of formulas, with "variable dependency height" as the sorting key
+ */
 function sortfs(Fs){
 //  var Dlist={};     // variable dependency list, usually declared globally
     Dlist={};
