@@ -27,7 +27,7 @@ A more realistic example of usage is shown in `pcalcio.js`, where we link the ca
 
 The user guide is available on [RicharddeRozario/pcalc](https://Richardderozario/pcalc) which links to the `/docs` folder in the repo.  The source for the user guide is in the `/contents` folder.  The user guide is created with [MkDocs](https://www.mkdocs.org/user-guide/writing-your-docs/), so if you clone the repo, you may wish to install MkDocs as well.
 
-The code documentation is available in the `_build/html` folder, and is created using [Sphinx-js](https://github.com/erikrose/sphinx-js) from the comments in the source code (which follow the jsdoc format and tags), as well as from the index.rst document, which contains extra explanation.  To build the documentation, enter `make html` from the command line in the pcalc folder.  (I'm assuming here a that you're using a *nix environment).
+The code documentation is available in the `_build/html` folder (open the `index.html` file), and is created using [Sphinx-js](https://github.com/erikrose/sphinx-js) from the comments in the source code (which follow the jsdoc format and tags), as well as from the index.rst document, which contains extra explanation.  To build the documentation, enter `make html` from the command line in the pcalc folder.  (I'm assuming here a that you're using a *nix environment).
 
 
 ## Testing

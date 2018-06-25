@@ -48,7 +48,115 @@
 <blockquote>
 <div>{ “X”:null, “Y”:[“X”], “Z”:[“X”,”Y”] }</div></blockquote>
 <p>The next major section starts with the function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> and comprises the formula interpreter. This formula interpreter is called for every formula in the html content, from the function <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a> in the wrapper section.  The formula interpreter will use “assignment formulas” to update an object (typically called “U”) which ultimately contains the probability network variables and their definitions.  This object is then used later to calculate the results of formulas.  Even though <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> only interpretes one formula at the time, the <cite>U</cite> object stores or updates any variable assignments.  This way, successive calls to <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> will incrementally build the probability network in <cite>U</cite>. The wrapper section initialises <cite>U</cite>, which is by default not global.  However, for debugging, <cite>U</cite> can easily be made a global object (see the commented out lines in <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a>).</p>
-<p>The function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> is essentially the start of a recursive descent interpreter that translates the formulas into a more easily computable structure, which is passed to the third major sub-module, which is the computational engine for probability networks (more on that later).</p>
+<div class="section" id="overview-of-the-interpreter-sub-module">
+<h3>Overview of the interpreter sub-module<a class="headerlink" href="#overview-of-the-interpreter-sub-module" title="Permalink to this headline">¶</a></h3>
+<p>The function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> is essentially the start of a recursive descent interpreter that translates the formulas into a more easily computable structure, which is passed to the third major sub-module, which is the computational engine for probability networks (more on that later).  We can play with <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> from the node commandline (or the browser console), as long as we pass it a “User space” object.  An empty object can be defined on the commandline as follows:</p>
+<blockquote>
+<div><strong>&gt;</strong> var U = { id:”my space”, nonp:{} }</div></blockquote>
+<p>We can then apply <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>, for example:</p>
+<blockquote>
+<div><strong>&gt;</strong> pcalc(‘pr X=50%’,U)</div></blockquote>
+<p>We then see that the probability variable has been added to <cite>U</cite>:</p>
+<blockquote>
+<div><p><strong>&gt;</strong> U</p>
+<p>// result is:</p>
+<p>{ id: ‘my space’, nonp: {}, X: { true: 0.5 } }</p>
+</div></blockquote>
+<p>In case you’re wondering what the <cite>nonp</cite> is for:  it holds non-probabilistic variables.  For example,</p>
+<blockquote>
+<div><p><strong>&gt;</strong> pcalc(‘X = 3’,U)</p>
+<p><strong>&gt;</strong> U</p>
+<p>// result is:</p>
+<p>{ id: ‘my space’, nonp: { X: 3 }, X: { true: 0.5 } }</p>
+<p><strong>&gt;</strong> pcalc(‘1+2*X’,U)</p>
+<p>// result is:</p>
+<p>7</p>
+</div></blockquote>
+<p>From the examples above, it should be clear that the “wrapper” section of <cite>pcalc.js</cite> mostly extracts a list of formulas from the html content and passes each formula to <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>, together with a user space object that will hold all the probability variable definitions (as well as any non-probability variables, but we’ll ignore that for the moment).  Here is an example of how to construct a probability network from the commandline, using <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">W</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">id</span><span class="o">:</span><span class="s2">&quot;wet grass&quot;</span><span class="p">,</span> <span class="nx">nonp</span><span class="o">:</span><span class="p">{}</span> <span class="p">}</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr Rain=20%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr Sprinkler given Rain=1%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr Sprinkler given not Rain=40%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr WetGrass given not Sprinkler and not Rain = 0%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr WetGrass given not Sprinkler and Rain = 80%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr WetGrass given Sprinkler and not Rain = 90%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+<span class="nx">pcalc</span><span class="p">(</span><span class="s2">&quot;pr WetGrass given Sprinkler and Rain = 99%&quot;</span><span class="p">,</span> <span class="nx">W</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can then inspect the probability network (i.e. Bayes net) created in <cite>W</cite>. We’ll use the <cite>print.js</cite> utility to see the unabbreviated content:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span> <span class="p">.</span><span class="nx">load</span> <span class="nx">print</span><span class="p">.</span><span class="nx">js</span>
+ <span class="nx">print</span><span class="p">(</span><span class="nx">W</span><span class="p">)</span>
+
+<span class="c1">// result is:</span>
+
+<span class="p">{</span> <span class="nx">id</span><span class="o">:</span> <span class="s1">&#39;wet grass&#39;</span><span class="p">,</span>
+    <span class="nx">nonp</span><span class="o">:</span> <span class="p">{},</span>
+    <span class="nx">Rain</span><span class="o">:</span> <span class="p">{</span> <span class="kc">true</span><span class="o">:</span> <span class="mf">0.2</span> <span class="p">},</span>
+    <span class="nx">Sprinkler</span><span class="o">:</span> <span class="p">{</span> <span class="s1">&#39;#&#39;</span><span class="o">:</span> <span class="p">[</span> <span class="p">[</span> <span class="mf">0.01</span><span class="p">,</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">],</span> <span class="p">[</span> <span class="mf">0.4</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">]</span> <span class="p">},</span>
+    <span class="nx">WetGrass</span><span class="o">:</span>
+        <span class="p">{</span> <span class="s1">&#39;#&#39;</span><span class="o">:</span>
+            <span class="p">[</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Sprinkler&#39;</span> <span class="p">],</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+            <span class="p">[</span> <span class="mf">0.8</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Sprinkler&#39;</span> <span class="p">],</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">]</span> <span class="p">],</span>
+            <span class="p">[</span> <span class="mf">0.9</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;Sprinkler&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+            <span class="p">[</span> <span class="mf">0.99</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;Sprinkler&#39;</span><span class="p">,</span> <span class="s1">&#39;Rain&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">]</span> <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The resulting user space object is a straight-forward javascript object.  It could be created manually, or perhaps imported via JSON.  The object structure also shows much of how probability formulas are represented internally.  Essentially, the logic component of a formula is represented using operator-prefix lists.  For example, [“and”,”X”,”Y”,”Z”] represents the conjunction of X,Y and Z.  We’ll come back to that in the evaluation sub-module, but for now we’ll note that the interpreter simply translates more conventially written formulas into this internal structure.</p>
+<p>Note that the <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> interpreter doesn’t only interpret probability formulas, but can handle basic arithmetic as well.  For example, try <cite>pcalc(“1+2*3”,U)</cite>.</p>
+<p>The recursive descent interpreter consists of a collection of functions, each of which looks at the next token(s) in the list and decides if those tokens match what the function is looking for.  The result of each function is returned in this general structure:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nx">err</span><span class="o">:</span> <span class="nx">ErrorStatus</span><span class="p">,</span> <span class="nx">val</span><span class="o">:</span> <span class="nx">ValueOfTheInterpretation</span><span class="p">,</span> <span class="nx">tail</span><span class="o">:</span> <span class="nx">RestOfTheTokens</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The interpreter will evaluate the expressions it’s given and return a result back to the top level function (i.e. <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>).  However, the as far as probability formulas is concerned, the interpreter is a “lazy interpreter” – it waits until the last possible moment to evaluate the formula.  In fact, there are only two functions where that evaluation takes place: <code class="xref js js-func docutils literal notranslate"><span class="pre">pexpression()</span></code> and <code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code>, both of which call the function <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> after they get the result from the expression parser <code class="xref js js-func docutils literal notranslate"><span class="pre">pexp()</span></code>.</p>
+<p>You can play around with probability formulas (the logic part) without actually evaluating them. Try the following:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">print</span><span class="p">(</span> <span class="nx">pexp</span><span class="p">([</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="nx">and</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="nx">or</span><span class="p">,</span><span class="nx">not</span><span class="p">,</span><span class="s2">&quot;Z&quot;</span><span class="p">],</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="p">)</span>
+
+<span class="c1">// result is:</span>
+<span class="p">{</span> <span class="nx">err</span><span class="o">:</span> <span class="kc">false</span><span class="p">,</span>
+  <span class="nx">val</span><span class="o">:</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+  <span class="nx">tail</span><span class="o">:</span> <span class="p">[]</span> <span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="overview-of-the-probability-calculator-sub-module">
+<h3>Overview of the probability calculator sub-module<a class="headerlink" href="#overview-of-the-probability-calculator-sub-module" title="Permalink to this headline">¶</a></h3>
+<p>Once the interpreter has translated the probability formula into the internal operator-prefix structure, and updated the user space with the variable assignments, we can calculate probability results with the <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> function.  This function requires a formula in prefix notation and a user space object and returns the resulting probability.  Note that there is one intermediate step necessary before we can use a user space object.  That is, we need to run the <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> function over the user space object, to ensure that all the conditional variables in the probability network have a _complete_ set of conditions.  If the conditions are only partially defined, then the <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> function will detect that and apply the “noisy-or” algorithm to try and complete the conditions.  The “noisy-or” algorithm essentially calculates for each combination of dependent variables the negation of the product of negated positive dependent variables.  For example, assume that we have defined the following probability network:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">mynet</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;mynet&quot;</span><span class="p">,</span>
+    <span class="nx">X</span><span class="o">:</span> <span class="p">{</span><span class="kc">true</span><span class="o">:</span> <span class="mf">0.2</span><span class="p">},</span>
+    <span class="nx">Y</span><span class="o">:</span> <span class="p">{</span><span class="kc">true</span><span class="o">:</span> <span class="mf">0.8</span><span class="p">},</span>
+    <span class="nx">Z</span><span class="o">:</span> <span class="p">{</span><span class="s2">&quot;#&quot;</span><span class="o">:</span> <span class="p">[</span>  <span class="p">[</span><span class="mf">0.9</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span> <span class="p">]}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Notice that the conditions of “Z” are combinatorially incomplete.  For instance, there is no definition for the conditional probability of “Z” when “X” is true, but “Y” is false.  The function <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> will detect that and apply the “noisy-or” algorithm.  At the node command line (after loading pcalc.js), enter the above probability network and then try the following:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">completor</span><span class="p">(</span><span class="nx">mynet</span><span class="p">)</span>
+<span class="nx">print</span><span class="p">(</span><span class="nx">mynet</span><span class="p">)</span>
+
+<span class="c1">// result is (numbers rounded for readability):</span>
+
+<span class="p">{</span>   <span class="nx">id</span><span class="o">:</span> <span class="s1">&#39;mynet&#39;</span><span class="p">,</span>
+    <span class="nx">X</span><span class="o">:</span> <span class="p">{</span> <span class="kc">true</span><span class="o">:</span> <span class="mf">0.2</span> <span class="p">},</span>
+    <span class="nx">Y</span><span class="o">:</span> <span class="p">{</span> <span class="kc">true</span><span class="o">:</span> <span class="mf">0.8</span> <span class="p">},</span>
+    <span class="nx">Z</span><span class="o">:</span> <span class="p">{</span> <span class="s1">&#39;#&#39;</span><span class="o">:</span>
+        <span class="p">[</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span> <span class="p">],</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+        <span class="p">[</span> <span class="mf">0.01</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span> <span class="p">],</span> <span class="s1">&#39;Y&#39;</span> <span class="p">]</span> <span class="p">],</span>
+        <span class="p">[</span> <span class="mf">0.9</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;not&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+        <span class="p">[</span> <span class="mf">0.91</span><span class="p">,</span> <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">],</span>
+        <span class="nx">vars</span><span class="o">:</span> <span class="p">[</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">],</span>
+        <span class="nx">probs</span><span class="o">:</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.91</span> <span class="p">]</span> <span class="p">},</span>
+    <span class="nx">vars</span><span class="o">:</span> <span class="p">[</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="p">]</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>Once the probability network is complete, we can use <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> to evaluate probability calculations over that network.  For example, if we want to know the probability of <cite>X or Y</cite>, we can enter the following:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">prob</span><span class="p">([</span><span class="nx">or</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span><span class="nx">mynet</span><span class="p">)</span>
+
+<span class="c1">// result is:</span>
+
+<span class="mf">0.84</span>
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -252,7 +360,7 @@
 <dt id="tokenise">
 <code class="descname">tokenise</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#tokenise" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove whitespace, separate tokens, numbers and symbols. Aside from symbols like asterisk, plus sign, etc., the tokeniser separates out “tokens” which start with a letter and are followed by letters, digits or an underscore.  These tokens are later interpreted as function names or variables.</p>
-<p>Example: <cite>tokenise(‘pr Y given X is 50%</cite>)` on the node commandline will result in <cite>[ ‘pr’, ‘Y’, ‘given’, ‘X’, ‘is’, 50, ‘%’ ]</cite></p>
+<p>Example: <cite>tokenise(‘pr Y given X is 50%’)</cite> on the node commandline will result in <cite>[ ‘pr’, ‘Y’, ‘given’, ‘X’, ‘is’, 50, ‘%’ ]</cite></p>
 <p>Note 1: We pre-calculate numbers, including negative numbers. So, the minus sign in front of a number turns the number into a negative number.</p>
 <p>Note 2: question mark is counted as space. This is used by the html interface (see <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a>) as a placemarker to decide whether to display the formula together with the result.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -274,14 +382,83 @@
 <dl class="function">
 <dt id="pcalctok">
 <code class="descname">pcalctok</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pcalctok" title="Permalink to this definition">¶</a></dt>
-<dd><p>Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions.</p>
+<dd><p>Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions. This function is essentially the start of a recursive descent interpreter for probability math formulas.  You can see in this function that formulas are either “definitions” or “expressions”.  In other words, the grammar in this function is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pcalctok</span> <span class="o">--&gt;</span> <span class="n">definition</span> <span class="o">|</span> <span class="n">expression</span>
+</pre></div>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
 <li><strong>s</strong> (<em>array</em>) – array of tokens to interpret</li>
-<li><strong>U</strong> (<em>object</em>) – object that contains variables, especially probability variables and their values and conditions.</li>
+<li><strong>U</strong> (<em>object</em>) – “User space” object that contains variables, especially probability variables and their values and conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="definition">
+<code class="descname">definition</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a “definition” (i.e. assignment) formula and update the user space if needed with any new variables</p>
+<p>A definition can be either a simple probability definition, a conditional probability definition, or a non-probability variable assignment. So, the grammar for a definition is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">definition</span> <span class="o">--&gt;</span> <span class="n">probf</span><span class="p">,</span> <span class="p">(</span><span class="n">pdef_simple</span> <span class="o">|</span> <span class="n">pdef_given</span><span class="p">)</span>
+             <span class="o">|</span> <span class="n">vardef</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – “User space” object that contains variables, especially probability variables and their values and conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="vardef">
+<code class="descname">vardef</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#vardef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a non-probability variable definition (i.e. assignment)</p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vardef</span> <span class="o">--&gt;</span> <span class="n">vname</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">|</span> <span class="s2">&quot;is&quot;</span><span class="p">),</span> <span class="n">expression</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – “User space” object that contains variables, especially probability variables and their values and conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="probf">
+<code class="descname">probf</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#probf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret the probability functor (i.e. keyword that signals the start of a probability formula). No user space needs to be passed to this interpretation, because we don’t update the userspace upon seeing this keyword.  It simply acts as a signal in the processing of a formula.</p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">probf</span> <span class="o">--&gt;</span> <span class="p">(</span><span class="s2">&quot;probability of&quot;</span> <span class="o">|</span> <span class="s2">&quot;chance of&quot;</span> <span class="o">|</span> <span class="s2">&quot;chance&quot;</span> <span class="o">|</span> <span class="s2">&quot;probability&quot;</span> <span class="o">|</span> <span class="s2">&quot;prob&quot;</span> <span class="o">|</span> <span class="s2">&quot;pr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
 </ul>
 </td>
 </tr>
@@ -302,7 +479,11 @@
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Welcome to pcalc’s source code documentation!</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#overview-of-the-interpreter-sub-module">Overview of the interpreter sub-module</a></li>
+<li><a class="reference internal" href="#overview-of-the-probability-calculator-sub-module">Overview of the probability calculator sub-module</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>

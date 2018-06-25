@@ -331,7 +331,7 @@ function pcalc(S,U={"id":null,nonp:{}}){
 /**
  * Remove whitespace, separate tokens, numbers and symbols. Aside from symbols like asterisk, plus sign, etc., the tokeniser separates out "tokens" which start with a letter and are followed by letters, digits or an underscore.  These tokens are later interpreted as function names or variables.
  * 
- * Example: `tokenise('pr Y given X is 50%`)` on the node commandline will result in `[ 'pr', 'Y', 'given', 'X', 'is', 50, '%' ]`
+ * Example: `tokenise('pr Y given X is 50%')` on the node commandline will result in `[ 'pr', 'Y', 'given', 'X', 'is', 50, '%' ]`
  * 
  * Note 1: We pre-calculate numbers, including negative numbers. So, the minus sign in front of a number turns the number into a negative number.
  * 
@@ -370,10 +370,15 @@ function tokenise(s){
 }
 
 /**
- * Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions.
+ * Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions. This function is essentially the start of a recursive descent interpreter for probability math formulas.  You can see in this function that formulas are either "definitions" or "expressions".  In other words, the grammar in this function is:
+ * 
+ * ::
+ * 
+ *     pcalctok --> definition | expression
+ * 
  * 
  * @param {array} s - array of tokens to interpret 
- * @param {object} U - object that contains variables, especially probability variables and their values and conditions.
+ * @param {object} U - "User space" object that contains variables, especially probability variables and their values and conditions.
  */
 function pcalctok(s,U){
     var res=null;
@@ -386,6 +391,21 @@ function pcalctok(s,U){
     else{ return res.err;}
 }
 
+
+/**
+ * Interpret a "definition" (i.e. assignment) formula and update the user space if needed with any new variables
+ * 
+ * A definition can be either a simple probability definition, a conditional probability definition, or a non-probability variable assignment. So, the grammar for a definition is:
+ * 
+ * ::
+ * 
+ *    definition --> probf, (pdef_simple | pdef_given)
+ *                 | vardef
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @param {object} U - "User space" object that contains variables, especially probability variables and their values and conditions.
+ */
 function definition(s,U){
     var res=null;
 
@@ -410,6 +430,19 @@ function definition(s,U){
 // pdef -> "(" pdef ")" | pdef_simple | pdef_given
 
 
+/**
+ * Interpret a non-probability variable definition (i.e. assignment)
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    vardef --> vname, ("=" | "is"), expression
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @param {object} U - "User space" object that contains variables, especially probability variables and their values and conditions.
+ */
 function vardef(s,U){
     var res=null;
     var varname, value;
@@ -429,6 +462,18 @@ function vardef(s,U){
 
 
 
+/**
+ * Interpret the probability functor (i.e. keyword that signals the start of a probability formula). No user space needs to be passed to this interpretation, because we don't update the userspace upon seeing this keyword.  It simply acts as a signal in the processing of a formula.
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    probf --> ("probability of" | "chance of" | "chance" | "probability" | "prob" | "pr")
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ */
 function probf(s){
     if(s.length >= 2 && (s[0]=="probability" || s[0]=="chance") && s[1]=="of"){
         return {err: false, val: true, tail: s.slice(2)};
@@ -440,6 +485,8 @@ function probf(s){
 
     return {err:"no probf", val: null, tail: s};
 }
+
+
 
 function pdef_simple(s,U){
     //    console\.log("** simple probability definition. s="+s);
