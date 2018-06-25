@@ -116,9 +116,9 @@ function calcs(fs, Net){
 
 
 /**
- * Sort formulas in order of least dependency chain of variables. Given an object  `Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}` return `[[height,fid,F]...`
+ * Sort formulas in order of maximum "height" of variables. Given an object  `Fs={ 'f1':{'F':'prob X=0.5'}, 'f2':{'F': 'prob Y=0.5'}...}` return `[[height,fid,F]...`
  * 
- * The "least dependency chain" is the recursively calculated length of variables that appear in the conditions that a variable depends on.  A simple definition like `pr X=0.5` means that the variable X does not depend on any  other variable, and so has a length of zero.  In `pr Y given X=0.5`, the variable Y depends on X, and so has a length of 1.  In `pr Z given X or Y = 0.7`, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.
+ * The "height" is the recursively calculated length of dependent variables that appear in the conditions that a variable depends on.  A simple definition like `pr X=0.5` means that the variable X does not depend on any  other variable, and so has a length of zero.  In `pr Y given X=0.5`, the variable Y depends on X, and so has a length of 1.  In `pr Z given X or Y = 0.7`, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.
  * 
  * Along the way, the sort function also creates a global object called :func:`Dlist`, which contains a dependency list for each variable.  For example, {'X':null, 'Y':['X'], 'Z':['X','Y']}.   The object is global and exported, in order to support external modules such as the diagram generator.  Internally, the sort routine uses Sets to update the Dlist (to avoid appending duplicate variables), but later converts the Dlist back to a simple object.
  * 
@@ -209,11 +209,26 @@ function height(node,D,curpath){
 }
 
 
-// The varconvert function.  Input is a document text string.
-// Output is html text and formula list. Enables the user to enter 
-// a formula using backticks, rather than insert more cumbersome <code> tags
-// We're deliberately not using DOM traversal, because backticks don't
-// necessarily follow the DOM hierarchy, and to avoid XSS risk
+/**
+ * Convert a text (html) string with formulas in backticks, to a text (html) string where formulas are in code,span formulas, and span result tags
+ * 
+ * Note 1: the function processes a text string character-by-character from the last character to the first.  It does this, because it is easier to identify create the starting html tags (e.g. code etc.) if you already have the formula contents.  However, this means that creating "types" for the result tags is a separate step, because trying to do it in the same (major) loop can result in an error where the type from a prior formula gets attached to the the result tag.
+ * 
+ * The code structure for the formulas is as follows:
+ * 
+ *  * the `<code>` tag has a class of "pcalc"
+ *  * the formula is wrapped in a `<span>` tag with a class of "formulaA", "formulaB" or "formulaC". The "A" suffix is used for assignment formulas, for example `pr X = 50%`.  The "B" suffix is used for calculation formulas that do not have a question mark at the end, for example `pr X`.  The "C" suffix is used for calculation formulas that _do_ have a question mark at the end, for example `pr X?`.  These suffixes enable the users to indicate whether they want a calculation to show the formula together with the result (option C), or to hide the formula and only show the result (option B).  Assignment formulas (option A) are always shown.  Having these options encoded as class types enables us to control the display via CSS.
+ *  * the result is wrapped in a `<span>` tag with a class of "resultA", "resultB" or "resultC", with the same meaning as the formula tags
+ * 
+ * Note 2: we do a minimal check for having an even number of backticks.  An uneven one means that there is a backtick missing.
+ * 
+ * Note 3: backticks can be escaped in the source text in the usual way -- prefix the backtick with a backslash
+ * 
+ * Note 4: part of the reason for using regex to do the transformation is so that we do not rely on DOM processing.  This avoids possible cross site scripting malware, and also makes the pcalc module more independent from any IO interfacing.
+ * 
+ * @param {string} s - the (html) text string that contains formulas in backticks
+ * @return {string} the html string where formulas are now inside `<code>` and `<span>` tags 
+ */
 function tickconvert(s){
     Dlist={};             // reset the global variable dependency list
     var Fs={};            // init formula list
@@ -270,7 +285,12 @@ function tickconvert(s){
     }
 }
 
-
+/**
+ * Remove html formatting of formulas and results, and put formulas back inside backticks
+ * 
+ * @param {string} s - a text string with formulas inside <code> tags
+ * @return {string} a string where the code and span tags are removed (including any results) and formulas are inside backticks
+ */
 function resetcode(s){
     Dlist = null;       // reset global variable dependency list
     const startcode = /<code\s+class\s*=\s*"pcalc.">\s*<span\s+class="formula."\s+id="[^"]*"[^>]*>/gi;
@@ -281,7 +301,12 @@ function resetcode(s){
     return s.replace(startcode,"`").replace(endcode,"`");
 }
 
-// helper function for highlighting results, if the editor/webpage itself doesn't take care of that
+/**
+ * A helper function for highlight results, if the editor/webpage itself doesn't already take care of such highlighting
+ * 
+ * @param {string} s - html string with formulas already inside <code> tags
+ * @return {string} - same html string, but with "highlight" styling added to the resultB classes (results where the formula does not display) 
+ */
 function highlight(s){
     const code = /<code\s+class\s*=\s*"pcalcB">\s*<span\s+class="formulaB"\s+id="([^"]*)"\s*>([^<]*)<\/span>\s*<span\s+class="resultB"\s+id="([^"]*)"\s*>([^<]*)<\/span>\s*<\/code>/gi;
     return s.replace(code,function(_,fid,f,rid,res){
@@ -292,14 +317,29 @@ function highlight(s){
 
 // pcalc FORMULA INTERPRETER MODULE SOURCE -- INCLUDED FOR PACKAGING
 
-// top level interface to the interpreter
+/**
+ * The top level interface to the formula interpreter. Interpret the formula in the context of the referenced probability network. Probability assignment formulas will update the network.  For example, a formula like 'pr X is 50%` will create (or update) the network U with `U["X"] = {true: 0.5}`.  Since `U` is an object passed by reference, the original network is updated.
+ * 
+ * @param {string} S - a text string with single formula to interpret
+ * @param {object} U - the structure (object passed by reference) to hold the probability network
+ */
 function pcalc(S,U={"id":null,nonp:{}}){ 
     // console.log(U);
     return pcalctok(tokenise(S),U);  
 }
 
-// remove whitespace, separate tokens, numbers and symbols
-// precalculate numbers.  Note: question mark is counted as space
+/**
+ * Remove whitespace, separate tokens, numbers and symbols. Aside from symbols like asterisk, plus sign, etc., the tokeniser separates out "tokens" which start with a letter and are followed by letters, digits or an underscore.  These tokens are later interpreted as function names or variables.
+ * 
+ * Example: `tokenise('pr Y given X is 50%`)` on the node commandline will result in `[ 'pr', 'Y', 'given', 'X', 'is', 50, '%' ]`
+ * 
+ * Note 1: We pre-calculate numbers, including negative numbers. So, the minus sign in front of a number turns the number into a negative number.
+ * 
+ * Note 2: question mark is counted as space. This is used by the html interface (see :func:`calcs`) as a placemarker to decide whether to display the formula together with the result.
+ * 
+ * @param {string} s - the formula in text
+ * @return {array} a list of tokens, numbers and symbols
+ */
 function tokenise(s){
     var result=[];
     var space, token, number, exponent, symbol;
@@ -329,6 +369,12 @@ function tokenise(s){
     return result;
 }
 
+/**
+ * Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions.
+ * 
+ * @param {array} s - array of tokens to interpret 
+ * @param {object} U - object that contains variables, especially probability variables and their values and conditions.
+ */
 function pcalctok(s,U){
     var res=null;
 

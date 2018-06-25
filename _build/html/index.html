@@ -36,6 +36,20 @@
 <h1>Welcome to pcalc’s source code documentation!<a class="headerlink" href="#welcome-to-pcalc-s-source-code-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The pcalc module (<cite>pcalc.js</cite>) is actually a pre-packaged .js file that contains three major (sub-) modules. The first is a wrapper that provides the main (html) interface to the calculator.  This interface is intended to be very loosely coupled with any actual HTML page you might have.  Your HTML page simply feeds the html content as a string to <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a>, which will do the calculation of any formulas (inside backticks) in the html content and returns a modified html string for you to display.  The modified html string will have placed the formulas inside <cite>&lt;code class=”pcalc”&gt;&lt;span class=”formula.”&gt;…&lt;/span&gt;&lt;span class=”result.”&gt;…&lt;/span&gt;&lt;/code&gt;</cite> tags. You can find details on tag structure in the <a class="reference internal" href="#tickconvert" title="tickconvert"><code class="xref js js-func docutils literal notranslate"><span class="pre">tickconvert()</span></code></a> documentation.</p>
+<p>The other functions in the wrapper section (i.e. <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a>, <a class="reference internal" href="#sortfs" title="sortfs"><code class="xref js js-func docutils literal notranslate"><span class="pre">sortfs()</span></code></a>, <a class="reference internal" href="#height" title="height"><code class="xref js js-func docutils literal notranslate"><span class="pre">height()</span></code></a>, <a class="reference internal" href="#tickconvert" title="tickconvert"><code class="xref js js-func docutils literal notranslate"><span class="pre">tickconvert()</span></code></a>, and <a class="reference internal" href="#highlight" title="highlight"><code class="xref js js-func docutils literal notranslate"><span class="pre">highlight()</span></code></a> ) are mainly there to support <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a>.  There is also a function (i.e. <a class="reference internal" href="#resetcode" title="resetcode"><code class="xref js js-func docutils literal notranslate"><span class="pre">resetcode()</span></code></a>) that removes the <cite>&lt;code&gt;</cite> tags and calculation results and restores formulas to be inside the original backticks.  The <a class="reference internal" href="#sortfs" title="sortfs"><code class="xref js js-func docutils literal notranslate"><span class="pre">sortfs()</span></code></a> function (and its sub-function <a class="reference internal" href="#height" title="height"><code class="xref js js-func docutils literal notranslate"><span class="pre">height()</span></code></a>) are worth noting, because they put probability formulas in the right order for calculation.  With probability formulas, you have to make sure that you evaluate the formulas with conditions (i.e. dependencies on other variables) in the right order of dependency.  For example, suppose you have the following formulas:</p>
+<blockquote>
+<div><p><cite>pr Y given X is 50%</cite></p>
+<p><cite>pr X is 20%</cite></p>
+</div></blockquote>
+<p>You have to evaluate the last formula first, because Y depends on having a value for X.  The <a class="reference internal" href="#sortfs" title="sortfs"><code class="xref js js-func docutils literal notranslate"><span class="pre">sortfs()</span></code></a> performs this task. One more point worth noting is that <code class="xref js js-func docutils literal notranslate"><span class="pre">sorfs()</span></code> also constructs a global object called <cite>Dlist</cite> which contains all the variables from all the formulas and has a simple dependency list for each.  For example, if the text contains the following formulas, <cite>pr X=0.5</cite>, <cite>pr Y given X = 0.2</cite> and <cite>pr Z given X or Y = 0.5</cite>, then <cite>Dlist</cite> will contain the following:</p>
+<blockquote>
+<div>{ “X”:null, “Y”:[“X”], “Z”:[“X”,”Y”] }</div></blockquote>
+<p>The next major section starts with the function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> and comprises the formula interpreter. This formula interpreter is called for every formula in the html content, from the function <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a> in the wrapper section.  The formula interpreter will use “assignment formulas” to update an object (typically called “U”) which ultimately contains the probability network variables and their definitions.  This object is then used later to calculate the results of formulas.  Even though <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> only interpretes one formula at the time, the <cite>U</cite> object stores or updates any variable assignments.  This way, successive calls to <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> will incrementally build the probability network in <cite>U</cite>. The wrapper section initialises <cite>U</cite>, which is by default not global.  However, for debugging, <cite>U</cite> can easily be made a global object (see the commented out lines in <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a>).</p>
+<p>The function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> is essentially the start of a recursive descent interpreter that translates the formulas into a more easily computable structure, which is passed to the third major sub-module, which is the computational engine for probability networks (more on that later).</p>
+</div>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -50,7 +64,7 @@
 <dt id="calcvars">
 <code class="descname">calcvars</code><span class="sig-paren">(</span><em>Content</em><span class="sig-paren">)</span><a class="headerlink" href="#calcvars" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the text in Content, and calculate all the formulas in backticks in the content. Return the text, but now with the formulas (and possible results) in &lt;code&gt;…&lt;/code&gt; tags.</p>
-<p>Broadly, calcvars first uses <code class="xref js js-func docutils literal notranslate"><span class="pre">tickconvert()</span></code> to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called &lt;fi&gt; for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.</p>
+<p>Broadly, calcvars first uses <a class="reference internal" href="#tickconvert" title="tickconvert"><code class="xref js js-func docutils literal notranslate"><span class="pre">tickconvert()</span></code></a> to convert the formulas in backticks to tagged formulas, as well as extract a formula list.  Then, it sorts the formulas in order of dependencies (of variables).  The third step is to actually interpret the formulas and store the results in an object called Rlist.  Lastly, we process the Rlist and plug any results from the formulas into the appropriate place in the html text (the right place was previously placemarked by tickconvert.  Basically, it created a tag called &lt;fi&gt; for every formula, numbered i, where the result should go). After placing the results, we return the resulting html string.</p>
 <p>Calcvars is a “top level” function that you can play with from the node commandline.  So, start node and <cite>.load pcalc.js</cite>. Then, try <cite>calcvars(“&lt;p&gt;`probability of Y given X is 50%`&lt;/p&gt;&lt;p&gt;`probability of X is 50%`&lt;/p&gt;&lt;p&gt;So, the `%probability of Y?`&lt;/p&gt;”)</cite>. The result will be a string with html text, where the backticks have been replaced by html <cite>&lt;code&gt;</cite> tags, including <cite>&lt;span&gt;</cite> tags for formulas and results.  The formula and result classes have a suffix of ‘A’, ‘B’ or ‘C’. These indicate respectively whether the formula is an “assignment” (i.e. has an “=” or the keyword “is”), or a formula that needs hiding as soon as a result is available, or a formula that needs display together with the result.  Having different class names for each of these cases makes it easy to control the display with stylesheets.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -91,10 +105,42 @@
 </dd></dl>
 
 <dl class="function">
+<dt id="tickconvert">
+<code class="descname">tickconvert</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#tickconvert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a text (html) string with formulas in backticks, to a text (html) string where formulas are in code,span formulas, and span result tags</p>
+<p>Note 1: the function processes a text string character-by-character from the last character to the first.  It does this, because it is easier to identify create the starting html tags (e.g. code etc.) if you already have the formula contents.  However, this means that creating “types” for the result tags is a separate step, because trying to do it in the same (major) loop can result in an error where the type from a prior formula gets attached to the the result tag.</p>
+<p>The code structure for the formulas is as follows:</p>
+<blockquote>
+<div><ul class="simple">
+<li>the <cite>&lt;code&gt;</cite> tag has a class of “pcalc”</li>
+<li>the formula is wrapped in a <cite>&lt;span&gt;</cite> tag with a class of “formulaA”, “formulaB” or “formulaC”. The “A” suffix is used for assignment formulas, for example <cite>pr X = 50%</cite>.  The “B” suffix is used for calculation formulas that do not have a question mark at the end, for example <cite>pr X</cite>.  The “C” suffix is used for calculation formulas that _do_ have a question mark at the end, for example <cite>pr X?</cite>.  These suffixes enable the users to indicate whether they want a calculation to show the formula together with the result (option C), or to hide the formula and only show the result (option B).  Assignment formulas (option A) are always shown.  Having these options encoded as class types enables us to control the display via CSS.</li>
+<li>the result is wrapped in a <cite>&lt;span&gt;</cite> tag with a class of “resultA”, “resultB” or “resultC”, with the same meaning as the formula tags</li>
+</ul>
+</div></blockquote>
+<p>Note 2: we do a minimal check for having an even number of backticks.  An uneven one means that there is a backtick missing.</p>
+<p>Note 3: backticks can be escaped in the source text in the usual way – prefix the backtick with a backslash</p>
+<p>Note 4: part of the reason for using regex to do the transformation is so that we do not rely on DOM processing.  This avoids possible cross site scripting malware, and also makes the pcalc module more independent from any IO interfacing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>string</em>) – the (html) text string that contains formulas in backticks</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – the html string where formulas are now inside <cite>&lt;code&gt;</cite> and <cite>&lt;span&gt;</cite> tags</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="sortfs">
 <code class="descname">sortfs</code><span class="sig-paren">(</span><em>Fs</em><span class="sig-paren">)</span><a class="headerlink" href="#sortfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort formulas in order of least dependency chain of variables. Given an object  <cite>Fs={ ‘f1’:{‘F’:’prob X=0.5’}, ‘f2’:{‘F’: ‘prob Y=0.5’}…}</cite> return <cite>[[height,fid,F]…</cite></p>
-<p>The “least dependency chain” is the recursively calculated length of variables that appear in the conditions that a variable depends on.  A simple definition like <cite>pr X=0.5</cite> means that the variable X does not depend on any  other variable, and so has a length of zero.  In <cite>pr Y given X=0.5</cite>, the variable Y depends on X, and so has a length of 1.  In <cite>pr Z given X or Y = 0.7</cite>, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.</p>
+<dd><p>Sort formulas in order of maximum “height” of variables. Given an object  <cite>Fs={ ‘f1’:{‘F’:’prob X=0.5’}, ‘f2’:{‘F’: ‘prob Y=0.5’}…}</cite> return <cite>[[height,fid,F]…</cite></p>
+<p>The “height” is the recursively calculated length of dependent variables that appear in the conditions that a variable depends on.  A simple definition like <cite>pr X=0.5</cite> means that the variable X does not depend on any  other variable, and so has a length of zero.  In <cite>pr Y given X=0.5</cite>, the variable Y depends on X, and so has a length of 1.  In <cite>pr Z given X or Y = 0.7</cite>, the variable Z depends on X and Y, of which Y has the longer dependency length, and so Z has a length of one more than Y (i.e. length of Z = 2).  Formulas that are not assignments, but simple calculations are given an arbitrarily long  length (1000) so that they come last in the sort order.  That is because calculations need to be performed after all assignments have been evaluated.</p>
 <p>Along the way, the sort function also creates a global object called <a class="reference internal" href="#Dlist" title="Dlist"><code class="xref js js-func docutils literal notranslate"><span class="pre">Dlist()</span></code></a>, which contains a dependency list for each variable.  For example, {‘X’:null, ‘Y’:[‘X’], ‘Z’:[‘X’,’Y’]}.   The object is global and exported, in order to support external modules such as the diagram generator.  Internally, the sort routine uses Sets to update the Dlist (to avoid appending duplicate variables), but later converts the Dlist back to a simple object.</p>
 <p>The relationship between Dlist and sorting the formulas is that a formula height is the height of its highest variable (as with the X,Y,Z example above).  So, first we need to calculate the height of each variable in a formula, and then determine the highest of those variables.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -141,6 +187,108 @@
 <dd><p>The externally exposed object Dlist provides a simple dependency structure for variables in a probability network. For example, if Dlist contains the following: {‘X’:null,’Y’:[‘X’],’Z’:[‘X’,’Y’]}, then this represents that variable X has no dependencies, that Y depends on X and that Z depends on both X and Y.</p>
 </dd></dl>
 
+<dl class="function">
+<dt id="resetcode">
+<code class="descname">resetcode</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#resetcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove html formatting of formulas and results, and put formulas back inside backticks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>string</em>) – a text string with formulas inside &lt;code&gt; tags</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – a string where the code and span tags are removed (including any results) and formulas are inside backticks</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="highlight">
+<code class="descname">highlight</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#highlight" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function for highlight results, if the editor/webpage itself doesn’t already take care of such highlighting</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>string</em>) – html string with formulas already inside &lt;code&gt; tags</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – - same html string, but with “highlight” styling added to the resultB classes (results where the formula does not display)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="the-calculator-formula-interpreter">
+<h2>The calculator formula interpreter<a class="headerlink" href="#the-calculator-formula-interpreter" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pcalc">
+<code class="descname">pcalc</code><span class="sig-paren">(</span><em>S</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pcalc" title="Permalink to this definition">¶</a></dt>
+<dd><p>The top level interface to the formula interpreter. Interpret the formula in the context of the referenced probability network. Probability assignment formulas will update the network.  For example, a formula like ‘pr X is 50%` will create (or update) the network U with <cite>U[“X”] = {true: 0.5}</cite>.  Since <cite>U</cite> is an object passed by reference, the original network is updated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>S</strong> (<em>string</em>) – a text string with single formula to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – the structure (object passed by reference) to hold the probability network</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="tokenise">
+<code class="descname">tokenise</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#tokenise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove whitespace, separate tokens, numbers and symbols. Aside from symbols like asterisk, plus sign, etc., the tokeniser separates out “tokens” which start with a letter and are followed by letters, digits or an underscore.  These tokens are later interpreted as function names or variables.</p>
+<p>Example: <cite>tokenise(‘pr Y given X is 50%</cite>)` on the node commandline will result in <cite>[ ‘pr’, ‘Y’, ‘given’, ‘X’, ‘is’, 50, ‘%’ ]</cite></p>
+<p>Note 1: We pre-calculate numbers, including negative numbers. So, the minus sign in front of a number turns the number into a negative number.</p>
+<p>Note 2: question mark is counted as space. This is used by the html interface (see <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a>) as a placemarker to decide whether to display the formula together with the result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>string</em>) – the formula in text</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – a list of tokens, numbers and symbols</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pcalctok">
+<code class="descname">pcalctok</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pcalctok" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret the tokens of a probability formula and possibly update the user object that contains probability variables and their values and conditions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<em>array</em>) – array of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – object that contains variables, especially probability variables and their values and conditions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 
@@ -153,9 +301,13 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to pcalc’s source code documentation!</a></li>
+<li><a class="reference internal" href="#">Welcome to pcalc’s source code documentation!</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>
 <li><a class="reference internal" href="#the-main-interface-to-the-probability-calculator">The main interface to the probability calculator</a></li>
+<li><a class="reference internal" href="#the-calculator-formula-interpreter">The calculator formula interpreter</a></li>
 </ul>
 </li>
 </ul>
