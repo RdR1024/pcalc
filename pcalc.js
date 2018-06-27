@@ -488,6 +488,20 @@ function probf(s){
 
 
 
+/**
+ * Interpret simple probability definitions (after the `prob` keyword), like `X=50%`
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    pdef_simple --> pvname, ("=" | "is"), expression
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function pdef_simple(s,U){
     //    console\.log("** simple probability definition. s="+s);
     var res=null;
@@ -515,6 +529,20 @@ function pdef_simple(s,U){
 }
 
 
+/**
+ * Interpret conditional probability definitions (after the `prob` keyword), like `X given Y=50%`
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    pdef_simple --> pargiven, ("=" | "is"), expression
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function pdef_given(s,U){
     //    console.log("** conditional probability definition. s="+s);
     var res=null;
@@ -554,6 +582,19 @@ function pdef_given(s,U){
 
 // the probability given part can be wrapped in parentheses, like pr(X:Y)=0.5
 // grammar for that: pargiven -> "(" pargiven ")" | pgiven
+/**
+ * Interpret conditional probability variable that comes before the condition (i.e. before "given"). Pargiven takes care of the parentheses that may wrap the conditional part, for example in `pr(X given Y)=0.5`
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    pargiven --> "(" pargiven ")"
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @return {object} interpreter result object
+ */
 function pargiven(s){
     var value, varname;
     var res=token(s,["("]);
@@ -578,6 +619,19 @@ function pargiven(s){
     return res;
 }
 
+/**
+ * Interpret conditional probability variable that comes before the condition (i.e. before "given").
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    pgiven --> vname, (":" | "given")
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @return {object} interpreter result object
+ */
 function pgiven(s){
     var res={};
     var varname;
@@ -594,8 +648,19 @@ function pgiven(s){
     return res;
 }
 
-// probability definitions can wrap vname in parentheses, like pr(X)=0.5
-// so we'll create a grammar for that:  pvname -> "(" pvname ")" | vname
+/**
+ * Interpret a probability variable that may be wrapped in parentheses, as in `pr(X)=0.5`
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    pvname --> "(" pvname ")" | vname
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @return {object} interpreter result object
+ */
 function pvname(s){
     var value;
     var res=token(s,["("]);
@@ -613,6 +678,19 @@ function pvname(s){
     return res;
 }
 
+/**
+ * Interpret a variable name
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *    vname --> pvname
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret 
+ * @return {object} interpreter result object
+ */
 function vname(s){
     //    console.log("** vname");
     if(s.length>0 && typeof(s[0])=="string" && s[0][0]>="A" && s[0][0]<="Z"){
@@ -633,6 +711,28 @@ emdop -> "^" factor emdop | "*" factor emdop | "/" factor emdop | EMPTY
 Note: FUNC is a number or a function of a number
 */
 
+/**
+ * Interpret an arithmetic expression, including functions of numbers, of which probability functions are are one type.
+ * 
+ * grammar:
+ * 
+ * ::
+ * 
+ *  expression -> term asop | asop
+ *  term -> factor emdop
+ *  factor -> "(" expression ")" | FUNC
+ *  asop -> "+" term asop | "-" term asop | EMPTY
+ *  emdop -> "^" factor emdop | "*" factor emdop | "/" factor emdop | EMPTY
+ * 
+ *  Note-1: some parts of an expression may be empty, like the "add or subtract" operator part.  That means the return value parameter "err" has a special value (-1) which signals a non-error empty return.  In practice, this means that the return of "errors" for the purpose of notifying users of "expectations" in the expression is not very applicable, because it is hard to decide between an expected symbol and a legitimate empty return.
+ * 
+ *  Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type.
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} V - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function expression(s,V,U){
     // console.log("** expression. V="+V);
     var res=term(s,V,U);
@@ -654,6 +754,21 @@ function expression(s,V,U){
     // since asop can be EMPTY, it will always succeed here
 }
 
+/**
+ * Interpret an arithmetic term
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  term -> factor emdop
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} V - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function term(s,V,U){
     // console.log("** term. V="+V);
     var res=factor(s,V,U);
@@ -664,12 +779,26 @@ function term(s,V,U){
             return {err:res.err, val:res.val, tail:res.tail};
         }
     }
-    //
     //    console.log("** back in term, but err from factor or emdop= "+res.err);
     //    if(res.err==-1){ console.log("** term stopped on factor. value="+res.val)};
     return res;
 }
 
+/**
+ * Interpret an arithmetic factor
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  factor -> "(" expression ")" | FUNC
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} V - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function factor(s,value,U){
     // console.log("** factor. V="+value);
 
@@ -705,6 +834,21 @@ function factor(s,value,U){
     return {err:res.err, val:value, tail:s};
 }
 
+/**
+ * Interpret an arithmetic "add or subtract" subterm
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  asop -> "+" term asop | "-" term asop | EMPTY
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} V - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function asop(s,startval,U){
     //    console.log("** asop. V="+startval);
     if(s.length <=0) { return {err:-1, val:startval, tail:[]};}
@@ -746,6 +890,21 @@ function asop(s,startval,U){
 }
 
 
+/**
+ * Interpret an "exponentiation, multiply or divide" subterm
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  emdop -> "^" factor emdop | "*" factor emdop | "/" factor emdop | EMPTY
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function emdop(s,value,U){
     //    console.log("** emdop. V="+value);
     if(s.length <=0) { return {err:-1, val:value, tail:[]}; }
@@ -806,6 +965,14 @@ function emdop(s,value,U){
 }
 
 
+/**
+ * Interpret a token (non-variable symbol) in an arithmetic expression.
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {array} toks - the list of strings that token has to be in, in order to be considered a valid token
+ * @return {object} interpreter result object
+ */
 function token(s,toks){
     if(s.length>0 && toks.indexOf(s[0]) > -1){
         return {err:false, val:s[0], tail: s.slice(1)};
@@ -814,6 +981,23 @@ function token(s,toks){
     }
 }
 
+/**
+ * Interpret a function term
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  func --> "round" | "rounded"
+ *          | "percent" | "%"
+ *          | number
+ *          | probf, pexpression
+ *          | vname 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function func(s,U){
     // console.log("** function or number");
     //var value;
@@ -854,6 +1038,18 @@ function func(s,U){
     return {err:"no number or function",val:null,tail:s};
 }
 
+/**
+ * Interpret a number
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  number --> NUMBER, ["%"]
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @return {object} interpreter result object
+ */
 function number(s){
     if(s.length>0 && typeof(s[0])=="number"){
     //        console.log("** number ="+s[0]);

@@ -220,5 +220,32 @@ The calculator formula interpreter
 
 .. autofunction:: probf
 
+.. autofunction:: pdef_simple
+
+.. autofunction:: pdef_given
+
+.. autofunction:: pargiven
+
+.. autofunction:: pgiven
+
+.. autofunction:: pvname
+
+.. autofunction:: vname
+
+.. autofunction:: expression
+
+.. autofunction:: term
+
+.. autofunction:: factor
+
+.. autofunction:: asop
+
+.. autofunction:: emdop
+
+.. autofunction:: token
+
+.. autofunction:: func
+
+.. autofunction:: number
 
 

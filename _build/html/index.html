@@ -467,6 +467,364 @@
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="pdef_simple">
+<code class="descname">pdef_simple</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pdef_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret simple probability definitions (after the <cite>prob</cite> keyword), like <cite>X=50%</cite></p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pdef_simple</span> <span class="o">--&gt;</span> <span class="n">pvname</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">|</span> <span class="s2">&quot;is&quot;</span><span class="p">),</span> <span class="n">expression</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pdef_given">
+<code class="descname">pdef_given</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pdef_given" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret conditional probability definitions (after the <cite>prob</cite> keyword), like <cite>X given Y=50%</cite></p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pdef_simple</span> <span class="o">--&gt;</span> <span class="n">pargiven</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">|</span> <span class="s2">&quot;is&quot;</span><span class="p">),</span> <span class="n">expression</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pargiven">
+<code class="descname">pargiven</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pargiven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret conditional probability variable that comes before the condition (i.e. before “given”). Pargiven takes care of the parentheses that may wrap the conditional part, for example in <cite>pr(X given Y)=0.5</cite></p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pargiven</span> <span class="o">--&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">pargiven</span> <span class="s2">&quot;)&quot;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pgiven">
+<code class="descname">pgiven</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pgiven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret conditional probability variable that comes before the condition (i.e. before “given”).</p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pgiven</span> <span class="o">--&gt;</span> <span class="n">vname</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;:&quot;</span> <span class="o">|</span> <span class="s2">&quot;given&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pvname">
+<code class="descname">pvname</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pvname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a probability variable that may be wrapped in parentheses, as in <cite>pr(X)=0.5</cite></p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pvname</span> <span class="o">--&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">pvname</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">vname</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="vname">
+<code class="descname">vname</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#vname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a variable name</p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vname</span> <span class="o">--&gt;</span> <span class="n">pvname</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="expression">
+<code class="descname">expression</code><span class="sig-paren">(</span><em>s</em>, <em>V</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#expression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret an arithmetic expression, including functions of numbers, of which probability functions are are one type.</p>
+<p>grammar:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">expression</span> <span class="o">-&gt;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="n">asop</span>
+<span class="n">term</span> <span class="o">-&gt;</span> <span class="n">factor</span> <span class="n">emdop</span>
+<span class="n">factor</span> <span class="o">-&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">expression</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">FUNC</span>
+<span class="n">asop</span> <span class="o">-&gt;</span> <span class="s2">&quot;+&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="s2">&quot;-&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="n">EMPTY</span>
+<span class="n">emdop</span> <span class="o">-&gt;</span> <span class="s2">&quot;^&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;*&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;/&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="n">EMPTY</span>
+
+<span class="n">Note</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">some</span> <span class="n">parts</span> <span class="n">of</span> <span class="n">an</span> <span class="n">expression</span> <span class="n">may</span> <span class="n">be</span> <span class="n">empty</span><span class="p">,</span> <span class="n">like</span> <span class="n">the</span> <span class="s2">&quot;add or subtract&quot;</span> <span class="n">operator</span> <span class="n">part</span><span class="o">.</span>  <span class="n">That</span> <span class="n">means</span> <span class="n">the</span> <span class="k">return</span> <span class="n">value</span> <span class="n">parameter</span> <span class="s2">&quot;err&quot;</span> <span class="n">has</span> <span class="n">a</span> <span class="n">special</span> <span class="n">value</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">which</span> <span class="n">signals</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">error</span> <span class="n">empty</span> <span class="k">return</span><span class="o">.</span>  <span class="n">In</span> <span class="n">practice</span><span class="p">,</span> <span class="n">this</span> <span class="n">means</span> <span class="n">that</span> <span class="n">the</span> <span class="k">return</span> <span class="n">of</span> <span class="s2">&quot;errors&quot;</span> <span class="k">for</span> <span class="n">the</span> <span class="n">purpose</span> <span class="n">of</span> <span class="n">notifying</span> <span class="n">users</span> <span class="n">of</span> <span class="s2">&quot;expectations&quot;</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">expression</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">applicable</span><span class="p">,</span> <span class="n">because</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">hard</span> <span class="n">to</span> <span class="n">decide</span> <span class="n">between</span> <span class="n">an</span> <span class="n">expected</span> <span class="n">symbol</span> <span class="ow">and</span> <span class="n">a</span> <span class="n">legitimate</span> <span class="n">empty</span> <span class="k">return</span><span class="o">.</span>
+
+<span class="n">Note</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="n">the</span> <span class="n">FUNC</span> <span class="n">factor</span> <span class="n">encapsulates</span> <span class="n">functions</span> <span class="n">of</span> <span class="n">numbers</span><span class="p">,</span> <span class="n">of</span> <span class="n">which</span> <span class="n">the</span> <span class="n">sub</span><span class="o">-</span><span class="n">grammar</span> <span class="n">of</span> <span class="n">probability</span> <span class="n">functions</span> <span class="ow">is</span> <span class="n">one</span> <span class="nb">type</span><span class="o">.</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>V</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="term">
+<code class="descname">term</code><span class="sig-paren">(</span><em>s</em>, <em>V</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#term" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret an arithmetic term</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">term</span> <span class="o">-&gt;</span> <span class="n">factor</span> <span class="n">emdop</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>V</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="factor">
+<code class="descname">factor</code><span class="sig-paren">(</span><em>s</em>, <em>V</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret an arithmetic factor</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">factor</span> <span class="o">-&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">expression</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">FUNC</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>V</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="asop">
+<code class="descname">asop</code><span class="sig-paren">(</span><em>s</em>, <em>V</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#asop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret an arithmetic “add or subtract” subterm</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">asop</span> <span class="o">-&gt;</span> <span class="s2">&quot;+&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="s2">&quot;-&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="n">EMPTY</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>V</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="emdop">
+<code class="descname">emdop</code><span class="sig-paren">(</span><em>s</em>, <em>value</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#emdop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret an “exponentiation, multiply or divide” subterm</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">emdop</span> <span class="o">-&gt;</span> <span class="s2">&quot;^&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;*&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;/&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="n">EMPTY</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="token">
+<code class="descname">token</code><span class="sig-paren">(</span><em>s</em>, <em>toks</em><span class="sig-paren">)</span><a class="headerlink" href="#token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a token (non-variable symbol) in an arithmetic expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>toks</strong> (<em>array</em>) – the list of strings that token has to be in, in order to be considered a valid token</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="func">
+<code class="descname">func</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a function term</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">func</span> <span class="o">--&gt;</span> <span class="s2">&quot;round&quot;</span> <span class="o">|</span> <span class="s2">&quot;rounded&quot;</span>
+        <span class="o">|</span> <span class="s2">&quot;percent&quot;</span> <span class="o">|</span> <span class="s2">&quot;%&quot;</span>
+        <span class="o">|</span> <span class="n">number</span>
+        <span class="o">|</span> <span class="n">probf</span><span class="p">,</span> <span class="n">pexpression</span>
+        <span class="o">|</span> <span class="n">vname</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="number">
+<code class="descname">number</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a number</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">number</span> <span class="o">--&gt;</span> <span class="n">NUMBER</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;%&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 
