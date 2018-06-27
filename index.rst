@@ -174,7 +174,9 @@ Once the probability network is complete, we can use :func:`prob` to evaluate pr
 
     0.84
 
+The core calculator expects a formula in prefix notation and a (completed) probability network object.  It then transforms the probability formula into *Disjunctive Normal Form* and evaluates each part of the DNF formula by "completing" the variable combinations and looking up the probabilities of the variables (and multiplying and summing those).   To unpack the various parts of the above sentence:
 
+*Disjunctive Normal Form* means that in a logical expression, we drive negations inwards until they apply only to variables and not sub-expressions.  Then we distribute "AND" over "OR".  We repeat that process until we have a simple list of conjunctions of either variables or their negations.  For example, let's say that we have the following expression: 
 
 
 Indices and tables
@@ -248,4 +250,21 @@ The calculator formula interpreter
 
 .. autofunction:: number
 
+.. autofunction:: pexpression
+
+.. autofunction:: vpargiven
+
+.. autofunction:: vgiven
+
+.. autofunction:: pexp
+
+.. autofunction:: pterm
+
+.. autofunction:: plogic
+
+.. autofunction:: poperation
+
+
+The core probability calculator
+-------------------------------
 

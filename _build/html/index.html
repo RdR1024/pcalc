@@ -108,7 +108,7 @@
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nx">err</span><span class="o">:</span> <span class="nx">ErrorStatus</span><span class="p">,</span> <span class="nx">val</span><span class="o">:</span> <span class="nx">ValueOfTheInterpretation</span><span class="p">,</span> <span class="nx">tail</span><span class="o">:</span> <span class="nx">RestOfTheTokens</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The interpreter will evaluate the expressions it’s given and return a result back to the top level function (i.e. <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>).  However, the as far as probability formulas is concerned, the interpreter is a “lazy interpreter” – it waits until the last possible moment to evaluate the formula.  In fact, there are only two functions where that evaluation takes place: <code class="xref js js-func docutils literal notranslate"><span class="pre">pexpression()</span></code> and <code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code>, both of which call the function <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> after they get the result from the expression parser <code class="xref js js-func docutils literal notranslate"><span class="pre">pexp()</span></code>.</p>
+<p>The interpreter will evaluate the expressions it’s given and return a result back to the top level function (i.e. <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>).  However, the as far as probability formulas is concerned, the interpreter is a “lazy interpreter” – it waits until the last possible moment to evaluate the formula.  In fact, there are only two functions where that evaluation takes place: <a class="reference internal" href="#pexpression" title="pexpression"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexpression()</span></code></a> and <a class="reference internal" href="#vgiven" title="vgiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code></a>, both of which call the function <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> after they get the result from the expression parser <a class="reference internal" href="#pexp" title="pexp"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexp()</span></code></a>.</p>
 <p>You can play around with probability formulas (the logic part) without actually evaluating them. Try the following:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">print</span><span class="p">(</span> <span class="nx">pexp</span><span class="p">([</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="nx">and</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="nx">or</span><span class="p">,</span><span class="nx">not</span><span class="p">,</span><span class="s2">&quot;Z&quot;</span><span class="p">],</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="p">)</span>
 
@@ -618,17 +618,18 @@
 <code class="descname">expression</code><span class="sig-paren">(</span><em>s</em>, <em>V</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpret an arithmetic expression, including functions of numbers, of which probability functions are are one type.</p>
 <p>grammar:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">expression</span> <span class="o">-&gt;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="n">asop</span>
-<span class="n">term</span> <span class="o">-&gt;</span> <span class="n">factor</span> <span class="n">emdop</span>
-<span class="n">factor</span> <span class="o">-&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">expression</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">FUNC</span>
-<span class="n">asop</span> <span class="o">-&gt;</span> <span class="s2">&quot;+&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="s2">&quot;-&quot;</span> <span class="n">term</span> <span class="n">asop</span> <span class="o">|</span> <span class="n">EMPTY</span>
-<span class="n">emdop</span> <span class="o">-&gt;</span> <span class="s2">&quot;^&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;*&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="s2">&quot;/&quot;</span> <span class="n">factor</span> <span class="n">emdop</span> <span class="o">|</span> <span class="n">EMPTY</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>expression -&gt; term asop | asop
+term -&gt; factor emdop
+factor -&gt; &quot;(&quot; expression &quot;)&quot; | FUNC
+asop -&gt; &quot;+&quot; term asop | &quot;-&quot; term asop | EMPTY
+emdop -&gt; &quot;^&quot; factor emdop | &quot;*&quot; factor emdop | &quot;/&quot; factor emdop | EMPTY
 
-<span class="n">Note</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="n">some</span> <span class="n">parts</span> <span class="n">of</span> <span class="n">an</span> <span class="n">expression</span> <span class="n">may</span> <span class="n">be</span> <span class="n">empty</span><span class="p">,</span> <span class="n">like</span> <span class="n">the</span> <span class="s2">&quot;add or subtract&quot;</span> <span class="n">operator</span> <span class="n">part</span><span class="o">.</span>  <span class="n">That</span> <span class="n">means</span> <span class="n">the</span> <span class="k">return</span> <span class="n">value</span> <span class="n">parameter</span> <span class="s2">&quot;err&quot;</span> <span class="n">has</span> <span class="n">a</span> <span class="n">special</span> <span class="n">value</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">which</span> <span class="n">signals</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">error</span> <span class="n">empty</span> <span class="k">return</span><span class="o">.</span>  <span class="n">In</span> <span class="n">practice</span><span class="p">,</span> <span class="n">this</span> <span class="n">means</span> <span class="n">that</span> <span class="n">the</span> <span class="k">return</span> <span class="n">of</span> <span class="s2">&quot;errors&quot;</span> <span class="k">for</span> <span class="n">the</span> <span class="n">purpose</span> <span class="n">of</span> <span class="n">notifying</span> <span class="n">users</span> <span class="n">of</span> <span class="s2">&quot;expectations&quot;</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">expression</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">very</span> <span class="n">applicable</span><span class="p">,</span> <span class="n">because</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">hard</span> <span class="n">to</span> <span class="n">decide</span> <span class="n">between</span> <span class="n">an</span> <span class="n">expected</span> <span class="n">symbol</span> <span class="ow">and</span> <span class="n">a</span> <span class="n">legitimate</span> <span class="n">empty</span> <span class="k">return</span><span class="o">.</span>
+Note-1: some parts of an expression may be empty, like the &quot;add or subtract&quot; operator part.  That means the return value parameter &quot;err&quot; has a special value (-1) which signals a non-error empty return.  In practice, this means that the return of &quot;errors&quot; for the purpose of notifying users of &quot;expectations&quot; in the expression is not very applicable, because it is hard to decide between an expected symbol and a legitimate empty return.
 
-<span class="n">Note</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="n">the</span> <span class="n">FUNC</span> <span class="n">factor</span> <span class="n">encapsulates</span> <span class="n">functions</span> <span class="n">of</span> <span class="n">numbers</span><span class="p">,</span> <span class="n">of</span> <span class="n">which</span> <span class="n">the</span> <span class="n">sub</span><span class="o">-</span><span class="n">grammar</span> <span class="n">of</span> <span class="n">probability</span> <span class="n">functions</span> <span class="ow">is</span> <span class="n">one</span> <span class="nb">type</span><span class="o">.</span>
+Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type. So, you could comment out the probability function part in :func:`func` and have just an arithmetic interpreter.
 </pre></div>
 </div>
+<p>Note-3: the structure of each of these interpreter functions is to test whether the next elements of the token stream (i.e. parameter “s”) matches some expected token(s) and if so, return with a value.  If it doesn’t match, then code drops to the next section of the function to try something else.  So, each test consists only of an if…return.  There is usually no explicit “…else “, just a “continue to the next lines of code if the test was unsuccessful”.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -815,6 +816,196 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
 <li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pexpression">
+<code class="descname">pexpression</code><span class="sig-paren">(</span><em>s</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pexpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret probability expressions, which appear after signalling a probability statement in the main arithmetic grammar as a function (see above), or may appear recursively in conditional probability expressions (e.g. after the “given” keyword).</p>
+<p>grammar (see also the full grammar of arithmetic expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pexpression -&gt; pexp | vpargiven      // evaluation only happens here
+pexp -&gt; pterm poperation
+pterm -&gt; &quot;-&quot; pterm | plogic
+plogic -&gt; &quot;(&quot; pterm &quot;)&quot; | vname
+poperation -&gt; &quot;&amp;&quot; pexp | &quot;|&quot; pexp | EMPTY
+vpargiven -&gt; &quot;(&quot; vpargiven &quot;)&quot; | vgiven
+vgiven -&gt; pexp (&quot;:&quot; | &quot;given&quot;) pexp
+
+Note: evaluation of a probability expression only happens at the &quot;top level&quot; (in pexp or vpargiven).  At this point we call :func:`prob` to evaluate the expression in the context of the user space object that defines the probability variables (and network of dependencies -- i.e. the Bayesnet).  The remainder of the grammar is actually only parsing the probability expresssion.
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="vpargiven">
+<code class="descname">vpargiven</code><span class="sig-paren">(</span><em>s</em>, <em>value</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#vpargiven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret conditional variables in probability expressions, which is really <a class="reference internal" href="#vgiven" title="vgiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code></a> but possibly wrapped in parentheses.</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vpargiven</span> <span class="o">-&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">vpargiven</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">vgiven</span>
+</pre></div>
+</div>
+<p>Note that this mirrors <a class="reference internal" href="#pargiven" title="pargiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">pargiven()</span></code></a> in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="vgiven">
+<code class="descname">vgiven</code><span class="sig-paren">(</span><em>s</em>, <em>value</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#vgiven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret conditional variables in probability expressions.</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>vgiven -&gt; &quot;(&quot; vpargiven &quot;)&quot; | vgiven
+
+Note that this mirrors :func:`pgiven` in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pexp">
+<code class="descname">pexp</code><span class="sig-paren">(</span><em>s</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pexp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a non-assignment probability expressions</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pexp</span> <span class="o">-&gt;</span> <span class="n">pterm</span> <span class="n">poperation</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pterm">
+<code class="descname">pterm</code><span class="sig-paren">(</span><em>s</em>, <em>value</em>, <em>U</em><span class="sig-paren">)</span><a class="headerlink" href="#pterm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret probability term</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pterm</span> <span class="o">-&gt;</span> <span class="s2">&quot;-&quot;</span> <span class="n">pterm</span> <span class="o">|</span> <span class="n">plogic</span>
+</pre></div>
+</div>
+<p>Note that this mirrors <a class="reference internal" href="#pargiven" title="pargiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">pargiven()</span></code></a> in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+<li><strong>U</strong> (<em>object</em>) – user space object where variable definitions are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="plogic">
+<code class="descname">plogic</code><span class="sig-paren">(</span><em>s</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#plogic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a logic expression in a probability expression</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plogic</span> <span class="o">-&gt;</span> <span class="s2">&quot;(&quot;</span> <span class="n">pterm</span> <span class="s2">&quot;)&quot;</span> <span class="o">|</span> <span class="n">vname</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – interpreter result object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="poperation">
+<code class="descname">poperation</code><span class="sig-paren">(</span><em>s</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#poperation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpret a logical operation as a sub expression of probability logic</p>
+<p>grammar (see also the full grammar of probability expressions):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">poperation</span> <span class="o">-&gt;</span> <span class="s2">&quot;&amp;&quot;</span> <span class="n">pexp</span> <span class="o">|</span> <span class="s2">&quot;|&quot;</span> <span class="n">pexp</span> <span class="o">|</span> <span class="n">EMPTY</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<em>array</em>) – list (array) of tokens to interpret</li>
+<li><strong>value</strong> (<em>*</em>) – current value in the recursive interpretation of an expression.  May be array or number</li>
 </ul>
 </td>
 </tr>

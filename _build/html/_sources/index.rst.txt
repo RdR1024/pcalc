@@ -248,4 +248,18 @@ The calculator formula interpreter
 
 .. autofunction:: number
 
+.. autofunction:: pexpression
+
+.. autofunction:: vpargiven
+
+.. autofunction:: vgiven
+
+.. autofunction:: pexp
+
+.. autofunction:: pterm
+
+.. autofunction:: plogic
+
+.. autofunction:: poperation
+
 

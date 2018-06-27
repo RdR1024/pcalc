@@ -726,7 +726,9 @@ Note: FUNC is a number or a function of a number
  * 
  *  Note-1: some parts of an expression may be empty, like the "add or subtract" operator part.  That means the return value parameter "err" has a special value (-1) which signals a non-error empty return.  In practice, this means that the return of "errors" for the purpose of notifying users of "expectations" in the expression is not very applicable, because it is hard to decide between an expected symbol and a legitimate empty return.
  * 
- *  Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type.
+ *  Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type. So, you could comment out the probability function part in :func:`func` and have just an arithmetic interpreter.
+ * 
+ * Note-3: the structure of each of these interpreter functions is to test whether the next elements of the token stream (i.e. parameter "s") matches some expected token(s) and if so, return with a value.  If it doesn't match, then code drops to the next section of the function to try something else.  So, each test consists only of an if...return.  There is usually no explicit "...else ", just a "continue to the next lines of code if the test was unsuccessful".
  * 
  * @param {array} s - list (array) of tokens to interpret
  * @param {*} V - current value in the recursive interpretation of an expression.  May be array or number 
@@ -1063,20 +1065,27 @@ function number(s){
     } else { return {err:"no number",val:null,tail:s}; }
 }
 
-/*
-The grammar of probability logic is:
-pexpression -> pexp | vpargiven      // evaluation only happens here
-pexp -> pterm poperation
-pterm -> "-" pterm | plogic
-plogic -> "(" pterm ")" | vname
-poperation -> "&" pexp | "|" pexp | EMPTY
-vpargiven -> "(" vpargiven ")" | vgiven
-vgiven -> pexp (":" | "given") pexp
-
-Note: the probability logic constructs a logic expression, which is evaluated
-at the end.  Otherwise, we'd be passing big BitArrays around.
-*/
-
+/**
+ * Interpret probability expressions, which appear after signalling a probability statement in the main arithmetic grammar as a function (see above), or may appear recursively in conditional probability expressions (e.g. after the "given" keyword).
+ * 
+ * grammar (see also the full grammar of arithmetic expressions):
+ * 
+ * ::
+ * 
+ *  pexpression -> pexp | vpargiven      // evaluation only happens here
+ *  pexp -> pterm poperation
+ *  pterm -> "-" pterm | plogic
+ *  plogic -> "(" pterm ")" | vname
+ *  poperation -> "&" pexp | "|" pexp | EMPTY
+ *  vpargiven -> "(" vpargiven ")" | vgiven
+ *  vgiven -> pexp (":" | "given") pexp
+ * 
+ *  Note: evaluation of a probability expression only happens at the "top level" (in pexp or vpargiven).  At this point we call :func:`prob` to evaluate the expression in the context of the user space object that defines the probability variables (and network of dependencies -- i.e. the Bayesnet).  The remainder of the grammar is actually only parsing the probability expresssion.  
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function pexpression(s,U){
     // console.log("*** pexpression. s= "+s);
     var X=null;
@@ -1103,7 +1112,23 @@ function pexpression(s,U){
     return res;
 }
 
-// vpargiven is vgiven wrapped in optional parentheses
+/**
+ * Interpret conditional variables in probability expressions, which is really :func:`vgiven` but possibly wrapped in parentheses.
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  vpargiven -> "(" vpargiven ")" | vgiven
+ * 
+ * Note that this mirrors :func:`pargiven` in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function vpargiven(s,value,U){
     // console.log("*** vpargiven");
   
@@ -1129,6 +1154,23 @@ function vpargiven(s,value,U){
     return res;
 }
 
+/**
+ * Interpret conditional variables in probability expressions.
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  vgiven -> "(" vpargiven ")" | vgiven
+ * 
+ *  Note that this mirrors :func:`pgiven` in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function vgiven(s,value,U){
     // console.log("*** vgiven. s="+s);
     var pexpval=null;
@@ -1161,6 +1203,20 @@ function vgiven(s,value,U){
     return res;
 }
 
+/**
+ * Interpret a non-assignment probability expressions
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  pexp -> pterm poperation
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @return {object} interpreter result object
+ */
 function pexp(s,value){
     // console.log("*** pexp. s= "+s);
 
@@ -1173,6 +1229,23 @@ function pexp(s,value){
     return res;
 }
 
+/**
+ * Interpret probability term
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  pterm -> "-" pterm | plogic
+ * 
+ * Note that this mirrors :func:`pargiven` in conditional probability assignments, but is kept separate to avoid unintended cross-overs in the interpretation.
+ * 
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @param {object} U - user space object where variable definitions are stored
+ * @return {object} interpreter result object
+ */
 function pterm(s,value){
     //    console.log("*** pterm");
     if(s.length <=0) { return {err:-1, val:value, tail:[]}; }
@@ -1199,6 +1272,19 @@ function pterm(s,value){
 }
 
 
+/**
+ * Interpret a logic expression in a probability expression
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  plogic -> "(" pterm ")" | vname
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @return {object} interpreter result object
+ */
 function plogic(s,value){
     //    console.log("*** plogic");
 
@@ -1225,6 +1311,19 @@ function plogic(s,value){
     return {err:"no var or expression",val:value,tail:s};
 }
 
+/**
+ * Interpret a logical operation as a sub expression of probability logic
+ * 
+ * grammar (see also the full grammar of probability expressions):
+ * 
+ * ::
+ * 
+ *  poperation -> "&" pexp | "|" pexp | EMPTY
+ * 
+ * @param {array} s - list (array) of tokens to interpret
+ * @param {*} value - current value in the recursive interpretation of an expression.  May be array or number 
+ * @return {object} interpreter result object
+ */
 function poperation(s,value){
     //    console.log("*** poperation");
 
