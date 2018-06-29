@@ -176,7 +176,27 @@ Once the probability network is complete, we can use :func:`prob` to evaluate pr
 
 The core calculator expects a formula in prefix notation and a (completed) probability network object.  It then transforms the probability formula into *Disjunctive Normal Form* and evaluates each part of the DNF formula by "completing" the variable combinations and looking up the probabilities of the variables (and multiplying and summing those).   To unpack the various parts of the above sentence:
 
-*Disjunctive Normal Form* means that in a logical expression, we drive negations inwards until they apply only to variables and not sub-expressions.  Then we distribute "AND" over "OR".  We repeat that process until we have a simple list of conjunctions of either variables or their negations.  For example, let's say that we have the following expression: 
+*Disjunctive Normal Form* means that in a logical expression, we drive negations inwards until they apply only to variables and not sub-expressions.  Then we distribute "AND" over "OR".  We repeat that process until we have a simple list of conjunctions of either variables or their negations.  For example, let's say that we have the following expression: `F=[or,[not,[and,'X',[not,'Y']]],'X',[not,[or,'A',[and,'B','C']]]]`
+
+After moving the negations inwards, we would have:
+
+.. code-block:: js
+
+    ['or',
+      ['or', ['not','X'],'Y'],
+      'X',
+      ['and', 
+        ['not','A'], 
+        ['or', ['not','B' ], ['not','C' ]]
+      ]
+    ]
+
+At this stage, some simplification is possible, because we can remove duplicate "or" operations, and we notice that X and its the negation of X will cancel each other out.  Moreover, we can distribute the "and" over "or" in one of the subterms.  After applying that process a few times, we end up with the ultimate simplification:
+
+.. code-block:: js
+
+    [ 'or','Y', [ 'and', [ 'not', 'B' ], [ 'not', 'A' ] ],  [ 'and', [ 'not', 'C' ], [ 'not', 'A' ] ] ]
+
 
 
 Indices and tables
