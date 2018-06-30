@@ -700,16 +700,6 @@ function vname(s){
     }
 }
 
-/*
-The grammar for arithmetic expressions is as follows:
-expression -> term asop | asop
-term -> factor emdop
-factor -> "(" expression ")" | FUNC
-asop -> "+" term asop | "-" term asop | EMPTY
-emdop -> "^" factor emdop | "*" factor emdop | "/" factor emdop | EMPTY
-
-Note: FUNC is a number or a function of a number
-*/
 
 /**
  * Interpret an arithmetic expression, including functions of numbers, of which probability functions are are one type.
@@ -724,9 +714,10 @@ Note: FUNC is a number or a function of a number
  *  asop -> "+" term asop | "-" term asop | EMPTY
  *  emdop -> "^" factor emdop | "*" factor emdop | "/" factor emdop | EMPTY
  * 
- *  Note-1: some parts of an expression may be empty, like the "add or subtract" operator part.  That means the return value parameter "err" has a special value (-1) which signals a non-error empty return.  In practice, this means that the return of "errors" for the purpose of notifying users of "expectations" in the expression is not very applicable, because it is hard to decide between an expected symbol and a legitimate empty return.
  * 
- *  Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type. So, you could comment out the probability function part in :func:`func` and have just an arithmetic interpreter.
+ * Note-1: some parts of an expression may be empty, like the "add or subtract" operator part.  That means the return value parameter "err" has a special value (-1) which signals a non-error empty return.  In practice, this means that the return of "errors" for the purpose of notifying users of "expectations" in the expression is not very applicable, because it is hard to decide between an expected symbol and a legitimate empty return.
+ * 
+ * Note-2: the FUNC factor encapsulates functions of numbers, of which the sub-grammar of probability functions is one type. So, you could comment out the probability function part in :func:`func` and have just an arithmetic interpreter.
  * 
  * Note-3: the structure of each of these interpreter functions is to test whether the next elements of the token stream (i.e. parameter "s") matches some expected token(s) and if so, return with a value.  If it doesn't match, then code drops to the next section of the function to try something else.  So, each test consists only of an if...return.  There is usually no explicit "...else ", just a "continue to the next lines of code if the test was unsuccessful".
  * 
