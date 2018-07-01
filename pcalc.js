@@ -1453,7 +1453,16 @@ function completor(Net){
 /**
  * Transform conditions of conditional variables to DNF
  * 
- * We ensure that the conditions of a conditional variable in a probability network are of the simple form of a (disjunctive) list of all combinations of dependent variables. For example, if `Z` has the conditions [[0.8,'Y'],[0.5,'X',[not,'Y']]]
+ * We ensure that the conditions of a conditional variable in a probability network are of the simple form of a (disjunctive) list of all combinations of dependent variables. For example, consider the following example:
+ * 
+ * .. code-block:: js
+ * 
+ *   const simple ={id:"simple",nonp:{},
+ *                  X:{true:0.2},
+ *                  Y:{true:0.8},
+ *                  Z:{["#"]:[ [0.8,[and,"X","Y"]], [0.3,[or,[and,"X",[not,"Y"]],[and,[not,"X"],"Y"]]] ]}};
+ * 
+ * Variable `Z` has two conditions, each of which is already DNF.  We're going to cycle through all combinations of the dependent variables of Z (the outer for loop, indexed by `h`) -- so, `[-X,-Y],[-X,Y],[X,-Y]` and `[X,Y]` (in abbreviated notation).  The next inner loop (indexed by `k`), cycles through each of the conditional formulas (called Combos)
  * 
  * @param {string} V - variable in the probability network whose conditions we're transforming
  * @param {object} Net  - the probability network
