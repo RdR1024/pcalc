@@ -1348,6 +1348,8 @@ function poperation(s,value){
 // parents are presumed independent unless explicitly linked in the ancestor
 // network.
 
+// constants for logic formula operators.  Use of constants make it easier to change the symbols,
+// and make the formulas more readable.
 const and="and";
 const or="or";
 const not="not"; 
@@ -1358,8 +1360,25 @@ const probs="probs";
 const vars="vars";
 
 
-// complete the conditional probabilities for any incomplete variable,
-// using the "noisy-or" negation of the product of negations.
+/**
+ * Complete the conditional probabilities for any incomplete variable, using the "noisy-or" negation of the product of negations.
+ * 
+ * Outline: First we make a list of every variable in the network for reference, and store that in the object as `vars`. for every variable in the network, check if it is "complete" -- that is, if all logical combinations of its dependencies have been listed, together with their conditional probabilities. For example, if variable Y has a dependency, `[0.5,'X']`, then for completeness it should also have a dependency for its logical opposite, like `[0.2,[not,'X']]`. If the conditions are incomplete, then we collect all the defined conditions and make a list of all the combinations of those conditions, calling each combination a "Factor".  The probability of a factor is the negation (i.e. one minus) of the product of negations of each positive condition in the factor.  This is the so called "noisy or" approach.  For example, if variable `Z` has the conditions `[ [0.2,'X'], [0.8,'Y']]`, then to complete the conditions we first calculate all the factors:
+ * 
+ * .. code-block::
+ * 
+ *      [0,[not,'X'],[not,'Y']],    // no positive conditions in this factor, so prob = 0
+ *      [0.2,[not,'X'],'Y']         // one positive condition in this factor, so prob = 1-0.8 = 0.2 
+ *      [0.8,'X',[not,'Y']]         // one positive condition in this factor, so prob = 1-0.2 = 0.8
+ *      [0.84,'X','Y']              // two positive conditions, so prob = 1-(1-0.2)*(1-0.8) = 0.84
+ * 
+ * The combinations of factors are identified by the two inner for loops (using `i` and `j`) as the indices.  We cycle through the factors (using `i`) and for each factor cycle through the factors again (using `j`), in order to build the combination `[and,Factor(i),Factor(j)]`.  Note that the factors are arbitrary formulas, so we use :func:`dnf` to standardise the formula.  This may mean that the formulas reduce to `[]`, so we only push the factor if it has content.  The resulting list (`Combos`) is the replacement for the conditional formulas, which are now completed.
+ * 
+ * Whether or not the completed variables were calculated through the noisy-or process, or whether they were predefined, we ensure that all conditional variables are DNF by applying :func:`condnf`. Lastly, we make a simple list of the probabilities in binary count order of the variables in the conditions (we look up the combination in the list of factors, and use the listed probability if the combination matches the factor).  Essentially what this means is that we don't really need the conditions themselves anymore -- we simply simply look up the probability by using the binary count index of the relevant combination of variables. For example, if we're interested in the conditional probability of `[and,'X',[not,'Y']]`, then we get `Z.probs[2]`  because `X,not Y` == `10` in binary, which equals `2` as the index.  We keep the conditional formulas (i.e. factors) in the probability network object for reference.
+ * 
+ * @param {object} Net - the probability variable network. The orginal object (passed by reference) is updated.
+ * @return {boolean} - success or failure of completion 
+ */
 function completor(Net){
     if(type(Net)!="Object"){return false;}
 
@@ -1430,7 +1449,16 @@ function completor(Net){
     return true;
 }
 
-// transform conditions of conditional variables to DNF
+// 
+/**
+ * Transform conditions of conditional variables to DNF
+ * 
+ * We ensure that the conditions of a conditional variable in a probability network are of the simple form of a (disjunctive) list of all combinations of dependent variables. For example, if `Z` has the conditions [[0.8,'Y'],[0.5,'X',[not,'Y']]]
+ * 
+ * @param {string} V - variable in the probability network whose conditions we're transforming
+ * @param {object} Net  - the probability network
+ * @return {array} the transformed list of conditionsl formulas
+ */
 function condnf(V,Net){
     if(type(Net)!="Object"){return false;}
 
