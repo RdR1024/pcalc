@@ -197,12 +197,36 @@ At this stage, some simplification is possible, because we can remove duplicate 
 
     [ 'or','Y', [ 'and', [ 'not', 'B' ], [ 'not', 'A' ] ],  [ 'and', [ 'not', 'C' ], [ 'not', 'A' ] ] ]
 
-If each variable represented a probability, then the probability of this logical combination would be:
+If each variable represented a probability, then the probability of this logical combination would be a sum over the disjunction (i.e. the elements of the "or" list), and a product over conjunctions (i.e. multiply the elements of the "and" lists):
 
 .. code-block:: js
 
     Y + (1-B)*(1-A) + (1-C)*(1-A)
 
+The way we obtain the relevant probability for each variable is to look it up in the probability network.  The calculation of probability of a DNF formula is handled by the :func:`prob` function (Note: the function will apply DNF -- you do not need to apply dnf beforehand).  This probability function needs to handle a few complications.  Firstly, the possible operators in a function are `not`,`or`,`and` and `divide`.  The latter originates from the (Kolmogorov) axiomatic definition of `given`:  `prob X given Y` == `prob(X and Y) / prob Y`.  Note that we have taken care of supplementary definitions in the DNF resolution.  That is, `X given Y` is:
+
+* 1 (i.e. `[] / []`) if both X and Y resolve to `[]`
+* 0 if either, but not both, of X or Y resolves to `[]`
+* `prob X / prob Y` otherwise.
+
+You can try this out as follows:
+
+.. code-block:: js
+
+    var simple = {id:'simple', nonp:{}, X:{true:0.2}, Y:{true:0.8}}
+    dnf([given,[and,'X',[not,'X']],[and,'Y',[not,'Y']]])
+
+    // result is:
+    [divide,[],[]]
+
+    prob([given,[and,'X',[not,'X']],[and,'Y',[not,'Y']]],s)
+
+    // result is:
+    1
+
+There is one other complications that the probability calculation needs to handle.  In the `simple` example above, consider the probability of `[or,'X','Y']`. The formula is DNF, but we can't simple look up and add the probabilities of 'X' and 'Y'.  The reason is that `X` and `Y` overlap if you consider all combinations. The possibilities where `X` is true are `X and Y` and `X and not Y`.  The possibilities where `Y` is true are `Y and X` and `Y and not X`.  So, they overlap on `X and Y` and we need to ensure that that possibility isn't double counted. In other words, the true sum is the probabilities of `X and Y` + `X and not Y` + `not X and Y`, which equals `0.2 * 0.8 + 0.2 * (1-0.8) + (1-0.2)*0.8 == 0.84`
+
+The function :func:`jprobs` takes care of avoiding duplications in the probability calculation.  It does this pretty much as we would do it naturally: it expands variables in each term of the disjunctive list and marks every combination as "used" in a bitarray, while adding up the probabilities of terms.  The bitarray is simply a true/false value (i.e. "used" or "not used"), indexed by the logical combination of possible variables.  So, 'not X and not Y' would be index 0, 'not X and Y' would be index 1, 'X and not Y1 would be index 2, and `X and Y` would be index 3.  We always use "binary count order" of the variables, where the variables themselves are in alphabetical order. The helper function of :func:`allvars` expands a term to cover all possible combinations of variables.  Further helper functions of :func:`vars2x` and :func:`x2v` convert variable combinations to index values and vice versa.
 
 
 Indices and tables
