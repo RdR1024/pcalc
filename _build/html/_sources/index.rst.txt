@@ -318,3 +318,33 @@ The calculator formula interpreter
 The core probability calculator
 -------------------------------
 
+The DNF section of the calculator transforms formulas into **Disjunctive Normal Form**, where negations are pushed inwards until they are next to simple variables, and where "and" is distributed over "or".  The resulting formula is a simple list of conjunctions. The DNF section of the calculator consists of the following functions:
+
+.. autofunction:: completor
+
+.. autofunction:: condnf
+
+
+.. autofunction:: orcomplete
+
+.. autofunction:: dnf
+
+.. autofunction:: distand
+
+.. autofunction:: distnot
+
+.. autofunction:: orsfirst
+
+.. autofunction:: lookup
+
+.. autofunction:: combos
+
+.. autofunction:: combos0
+
+.. autofunction:: has
+
+.. autofunction:: equals
+
+.. autofunction:: typet
+
+.. autofunction:: type

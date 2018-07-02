@@ -1365,7 +1365,7 @@ const vars="vars";
  * 
  * Outline: First we make a list of every variable in the network for reference, and store that in the object as `vars`. for every variable in the network, check if it is "complete" -- that is, if all logical combinations of its dependencies have been listed, together with their conditional probabilities. For example, if variable Y has a dependency, `[0.5,'X']`, then for completeness it should also have a dependency for its logical opposite, like `[0.2,[not,'X']]`. If the conditions are incomplete, then we collect all the defined conditions and make a list of all the combinations of those conditions, calling each combination a "Factor".  The probability of a factor is the negation (i.e. one minus) of the product of negations of each positive condition in the factor.  This is the so called "noisy or" approach.  For example, if variable `Z` has the conditions `[ [0.2,'X'], [0.8,'Y']]`, then to complete the conditions we first calculate all the factors:
  * 
- * .. code-block::
+ * .. code-block:: js
  * 
  *      [0,[not,'X'],[not,'Y']],    // no positive conditions in this factor, so prob = 0
  *      [0.2,[not,'X'],'Y']         // one positive condition in this factor, so prob = 1-0.8 = 0.2 
@@ -1462,7 +1462,11 @@ function completor(Net){
  *                  Y:{true:0.8},
  *                  Z:{["#"]:[ [0.8,[and,"X","Y"]], [0.3,[or,[and,"X",[not,"Y"]],[and,[not,"X"],"Y"]]] ]}};
  * 
- * Variable `Z` has two conditions, each of which is already DNF.  We're going to cycle through all combinations of the dependent variables of Z (the outer for loop, indexed by `h`) -- so, `[-X,-Y],[-X,Y],[X,-Y]` and `[X,Y]` (in abbreviated notation).  The next inner loop (indexed by `k`), cycles through each of the conditional formulas (called Combos)
+ * Variable `Z` has two conditions, each of which is already DNF.  We're going to cycle through all combinations of the dependent variables of Z (the outer for loop, indexed by `h`) -- so, `[-X,-Y],[-X,Y],[X,-Y]` and `[X,Y]` (in abbreviated notation).  Each combination is initialised with a probability of 0.  The next inner loop (indexed by `k`), cycles through each of the conditional formulas (called Combos). 
+ * 
+ * The first of the Combos is `[0.8,[and,"X","Y"]]` of which `[and,"X","Y"]` is the condition itself. The condition does not start with "or" and has all the variables that `Z` depends on, so we skip most of the inner loop, going for a simple comparison against the current variable combination (`h`).  That is, we calculate the index of Combo and compare against `h`.  If there is a match, then we append Combo as the probability and formula for that variable combination.
+ * 
+ *  The next Combo `[0.3,[or,[and,"X",[not,"Y"]],[and,[not,"X"],"Y"]]]` does start with an "or", so we drop into the further inner loops that consider each term of the "or" clause. For each term, we create a possible sublist of terms expanded with missing variables. Then, for the expanded list we compare each term against the current variable combination. If there is a match, we append the subterm (and its probabilty inherited from the orignal Combo) as the probability formula for that variable combination. 
  * 
  * @param {string} V - variable in the probability network whose conditions we're transforming
  * @param {object} Net  - the probability network
@@ -1521,9 +1525,19 @@ function condnf(V,Net){
 }
 
 
-// check if the conditions of a conditional probability are complete
-// which is another way of saying that the conditions are too generally specified, not specific enough
-// e.g. compare the oil problem, variable 'S', with the specificity of W in wetgrass (wg)
+/**
+ * Check if the conditions of a conditional probability are complete, i.e. all logical combinations of variables are specified
+ * 
+ * From my notes of 2018-06-20: My original thought for "or complete" was that a variable that was conditionally defined wouldn't need "noisy-or" treatment (negated sum of negated products of the positive conditional variables) if the disjunctive collection of dependencies "cancelled" each other out.  That is, the the conjunction of dependent clauses would resolve to empty. For example, if Y has two conditions, `[0.9,X],[0.5,-X]` then the conditions of Y are complete, because `[and,X,[not,X]]` resolves to `[]`.  However, that didn't work, because one clause can cancel many other clauses.  For example, if Z is dependent on Y and X, then a clause like `[and,[not,X],[not,Y]]` can cancel all of `[and,X,Y]`, `[and,[not,X],Y]` and `[and,X,[not,Y]]`.
+
+ * So then I thought to do pairwise comparison: that is, a clause can only cancel one other term.  If there are left-over uncancelled terms, then that signals incompleteness.  But that didn't work either, because some terms can be under-specificed.  As the firefox example showed, some conditions can be incomplete.  For example, if the variable `Radar` has the following conditions `[0.3, [and,North,High]]`, `[0.1, [and,North,-High]]`, `[0.05, -North]`.  The last condition is an "incomplete" specification of `[0.05, -North, -High]` and `[0.05, -North, High]`.  When the condition is expanded into the two conditions, the conditional set is complete.
+
+ * This led me to the current version of `orcomplete()`, where I check if any of the conditions overlap -- when expanded with all combinations of possibly missing variables from that condition.  If that is the case, then the conditional set is too general (i.e. underspecified) and needs noisy-or treatment to complete it.
+ * 
+ * @param {string} V - variable for which we're checking "or completeness" of the conditions
+ * @param {object} Net  - probability network
+ * @return {boolean} returns `true` if the conditions of variable V in Net are complete
+ */
 function orcomplete(V,Net){
     if(type(Net)!="Object") throw "Unknown variable network";
     var Fs = lookup(V,Net,formulas);
@@ -1555,7 +1569,15 @@ function orcomplete(V,Net){
 
 
 
-// transform formula into Disjunctive Normal Form
+/**
+ * Convert logical formula to Disjunctive Normal Form, including resolution of contradictions and removal of duplications.
+ * 
+ * This function is an iterative wrapper around :func:distand, because `distand` won't distribute an "and" generated by :func:distnot. This :func:`dnf` function will iterate until now further changes occur in the formula.
+ * 
+ * @param {array} Formula - logical formula as list (array) in prefix form, with operators "and","or","not",and relation "divide" 
+ * @param {integer} max - maximum number of iterations to obtain disjunctive normal form 
+ * @return {array} returns a formula that is the transformation of `Formula` into Disjunctive Normal Form
+ */
 function dnf(Formula, max=10){
     var X=distand(Formula);
     var Y=null;
@@ -1572,10 +1594,41 @@ function dnf(Formula, max=10){
     return X;
 }
 
-// recursively look for places to distribute "and" over "or" in 
-// a list of terms. A term is any of [and,...], [or,...], [not,...], [given,...], [divide,...]
-// or a simple variable, e.g. "X". Expects list of formulas, but will handle single formula.
-// example: F=[or,[not,[and,'X',[not,'Y']]],'X',[or,'A','B']]
+/**
+ * Recursively look for places to distribute "and" over "or" in or a simple variable, e.g. "X". Expects list of formulas, but will handle single formula.
+ * 
+ * For example:
+ * 
+ * .. code-block:: js
+ * 
+ *      distand([or,[not,[and,'X',[not,'Y']]],'X',[or,'A','B']])
+ * 
+ *      // result is:
+ * 
+ *      [ [ 'or', 'Y', 'A', 'B' ] ]
+ * 
+ * The parameter `L` is type checked to ensure that it is a list of terms, where a term is either a simple variable or a list (array) consisting of an operator ("and","or","not","given","divide"), followed by any number of arguments (which themselves are terms).  The `for` loop of the code processes each term, taking different actions depending on the type of the term.  Two types get special attention: "not" and "and".  The "not" term is passed into the :func:`distnot` function, which pushes negations inwards until they next to a simple variable.  For example, `[not,[and,"X","Y"]]` is transformed to `[or,[not,"X"],[not,"Y"]]`.
+ * 
+ * Processing the "and" term is the main game.  For the "and" term, we first separate all "or" subterms from non-"or" subterms.  This is achieved with the :func:`orsfirst` function. Next, if there were less than two or-subterms, we reconstruct the "and" term. If there were 2 or more or-subterms, we generate all combinations of the or-subterm arguments with :func:`combos`.  Each of these combinations (with the non-or subterms appended) are the new "and" terms. For example, 
+ * 
+ * .. code-block:: js
+ * 
+ *      distand([and, [or,"A","B"],[or,"C","D"],"X","Y"])
+ * 
+ *      // results in:
+ * 
+ *      [ [ 'or',
+ *         [ 'and', 'A', 'C', 'X', 'Y' ],
+ *         [ 'and', 'A', 'D', 'X', 'Y' ],
+ *         [ 'and', 'B', 'C', 'X', 'Y' ],
+ *         [ 'and', 'B', 'D', 'X', 'Y' ] ] ]
+ * 
+ * Note that along the way, we also remove contradictory "and" clauses and omit duplicate subterms within "or" term.
+ * 
+ * @param {array} L - list of formulas 
+ * @param {string} curop - the "current operator" if :func:`distand` was recursively called from within processing another "or" or "and"
+ * @return {array} returns a formula that is one transformation further towards Disjunctive Normal Form (DNF)
+ */
 function distand(L,curop=null){
     if(type(L) != "Array" || type(L[0])=="undefined" ){ return L; } // not a list, so return unchanged
     if([and,or].includes(typet(L)) && curop==L[0]){  return distand(L.slice(1),curop); }
@@ -1720,9 +1773,12 @@ function distand(L,curop=null){
     return Res;
 }
 
-// recursively look for "not" in a formula, and distribute "not" over "and" or "or"
-// expects a single Formula, but can handle singular nesting of the formula
-// returns Formulas unchanged if not distribution is possible.
+/**
+ * recursively look for "not" in a formula, and distribute "not" over "and" or "or" expects a single Formula, but can handle singular nesting of the formula. Returns Formulas unchanged if not distribution is possible.
+ * 
+ * @param {array} F - a single formula, like `[not,[or,"X","Y"]]`
+ * @return {array} returns a formula in Negation Normal Form, i.e. where all "not" terms have been pushed inwards until they are next to simple variables 
+ */
 function distnot(F){
     if(type(F) != "Array"){return F; }
     if(F.length==1 && type(F[0])=="Array"){ return distnot(F[0]); }
@@ -1751,8 +1807,12 @@ function distnot(F){
 }
 
 
-// move all non-or clauses to the end 
-// assumes that F is Array of propositions
+/**
+ * Move all non-or clauses to the end of the formula.
+ * 
+ * @param {array} F - logical formula like `[and,"X","Y",[or,"A","B"]]`
+ * @return {object} returns an object where "ors" is a list of all or-terms, and "rest" is a list of the remaining terms
+ */
 function orsfirst(F){
     var Ors = [];
     var Rest = [];
@@ -1764,8 +1824,17 @@ function orsfirst(F){
     return {"ors":Ors,"rest":Rest};
 }
 
-// NOTE: lookup needs to be able to look up negs of variables [not,'X']
-// lookup value of a variable, or of a conditional
+/**
+ * Lookup value of a variable, or of a conditional.  For example, `lookup('Rain',wg)` or `lookup([given,'Sprinkler',[not,'Rain']],wg)`
+ * 
+ * When looking up a single variable, the function simple uses the variable name as a key into the `Net` object.  When looking up a conditional formula, it uses the dependent variable as a key, and then linearly looks through the conditional formulas. 
+ * 
+ * @param {array} F - string of "Variable" type, or 
+ * @param {object} Net - probability network
+ * @param {*} val - particular value to look for: `true`, `formulas`, or `logic`. The latter reconstructs formulas into a single disjunctive formula.
+ * 
+ * Todo: :func:`lookup` should also be able to lookup negations of variables i.e. `lookup([not,'Rain'],wg)`
+ */
 function lookup(F,Net,val=true){
     if(type(Net) != "Object"){ return false; }
     var res = false;
@@ -1798,8 +1867,13 @@ function lookup(F,Net,val=true){
     return res;
 }
 
-// get all max sized combinations of a list of junctions and switch functors 
-// e.g combos([and,[or,A,B],[or,C,D],[or,E,F]]) => [or,[and,A,C,E],[and,A,C,F],[and,A,D,E],[and,A,D,F],[and,B,C,E],[and,B,C,F],[and,B,D,E],[and,B,D,F]]
+/**
+ * Generate all maximally sized combinations of a formula with sub-junctions and switch functors.  In other words, distribute "or" over "and" or vice versa.
+ * For example, `combos([and,[or,A,B],[or,C,D],[or,E,F]])` results in `[or,[and,A,C,E],[and,A,C,F],[and,A,D,E],[and,A,D,F],[and,B,C,E],[and,B,C,F],[and,B,D,E],[and,B,D,F]]`
+ * 
+ * @param {array} List - logic formula, especially one with "or" or "and" subterms.
+ * @return {array} returns logic formula where disjunctive or conjunctive subterms have been recombined
+ */
 function combos(List){
     if(type(List)=="Array"){
         if(List.length==1){
@@ -1825,6 +1899,12 @@ function combos(List){
     return Res;
 }
 
+/**
+ * Core recursive function for :func:`combos`
+ * 
+ * @param {array} List - logic formula, especially one with "or" or "and" subterms.
+ * @return {array} returns logic formula where disjunctive or conjunctive subterms have been recombined
+ */
 function combos0(List){
     if(type(List)!="Array" || typet(List[0])=="Undefined"){ return List; }
     if(List.length==1 && [and,or].includes(typet(List[0]))){ return List[0].slice(1); }
@@ -1855,12 +1935,14 @@ function combos0(List){
     return Res;
 }
 
-// check if an array has a particular value
-// parameter "cond" controls if conditional terms need to be searched
-// in general, for disjunctive lists, don't search the conditionals, but
-// for conjunctive lists, do.
-// expects a NNF list of terms,  NOT A FORMULA, because it needs to examine the term type
-// to decide how to handle the search.
+/**
+ * Check if a term has a particular value (which may be another term). Expects a Negation Normal Form (NNF) list of terms,  NOT A FORMULA, because it needs to examine the term type to decide how to handle the search. The parameter "cond" controls if conditional terms need to be searched in general, for disjunctive lists, don't search the conditionals, but for conjunctive lists, do.
+ * 
+ * @param {*} X - string of type "Variable" or term
+ * @param {array} V  - term to search in
+ * @param {boolean} cond  - boolean to control whether to search within conditional terms
+ * @return {boolean} returns true if V contains X.
+ */
 function has(X,V,cond=false){
     var T=null;
     var h=null;
@@ -1912,6 +1994,13 @@ function has(X,V,cond=false){
 
 
 // compare two lists, unordered except for [0] or "given", or objects recursively down to strings or numbers
+/**
+ * Compare two formulas (arrays), unordered except for the first element (i.e. the operator in formulas) or where the formula is a conditional. The :func:`equals` function will also compare objects.
+ * 
+ * @param {array} X - first formula to compare with...
+ * @param {array} Y - ...second formula
+ * @return {boolean} - `true` if X equals Y, otherwise `false`
+ */
 function equals(X,Y){
     //console.log("     *** comparing ( "+X+" ) with ( "+Y+" )");
     //console.log("\n\nComparing the following: ");
@@ -1969,7 +2058,12 @@ function equals(X,Y){
     } else { return false; }
 }
 
-// determine term type in formula
+/**
+ * Determine the type of a term in a formula
+ * 
+ * @param {*} T - string of type "Variable" or term (i.e. array where first element is an operator)
+ * @return {string} the term type of T
+ */
 function typet(T){
     var Termtype = type(T);
     var Vardef = /^[A-Z]/;     // variables have to start with a uppercase letter
@@ -1982,6 +2076,12 @@ function typet(T){
 }
 
 // genertic js type function
+/**
+ * Determine the javascript type of the value of X
+ * 
+ * @param {*} X - any valid js type
+ * @return {string} type of X
+ */
 function type(X){ return Object.prototype.toString.call(X).slice(8,-1); }
 
 

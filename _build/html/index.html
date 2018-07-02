@@ -122,7 +122,7 @@
 <div class="section" id="overview-of-the-probability-calculator-sub-module">
 <h3>Overview of the probability calculator sub-module<a class="headerlink" href="#overview-of-the-probability-calculator-sub-module" title="Permalink to this headline">¶</a></h3>
 <p>Once the interpreter has translated the probability formula into the internal operator-prefix structure, and updated the user space with the variable assignments, we can calculate probability results with the <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> function.  This function requires a formula in prefix notation and a user space object and returns the resulting probability.</p>
-<p>Note that there is one intermediate step necessary before we can use a user space object.  That is, we need to run the <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> function over the user space object, to ensure that all the conditional variables in the probability network have a <em>complete</em> set of conditions.  If the conditions are only partially defined, then the <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> function will detect that and apply the “noisy-or” algorithm to try and complete the conditions.  The “noisy-or” algorithm essentially calculates for each combination of dependent variables the negation of the product of negated positive dependent variables.  For example, assume that we have defined the following probability network:</p>
+<p>Note that there is one intermediate step necessary before we can use a user space object.  That is, we need to run the <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a> function over the user space object, to ensure that all the conditional variables in the probability network have a <em>complete</em> set of conditions.  If the conditions are only partially defined, then the <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a> function will detect that and apply the “noisy-or” algorithm to try and complete the conditions.  The “noisy-or” algorithm essentially calculates for each combination of dependent variables the negation of the product of negated positive dependent variables.  For example, assume that we have defined the following probability network:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">mynet</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;mynet&quot;</span><span class="p">,</span>
     <span class="nx">X</span><span class="o">:</span> <span class="p">{</span><span class="kc">true</span><span class="o">:</span> <span class="mf">0.2</span><span class="p">},</span>
     <span class="nx">Y</span><span class="o">:</span> <span class="p">{</span><span class="kc">true</span><span class="o">:</span> <span class="mf">0.8</span><span class="p">},</span>
@@ -130,7 +130,7 @@
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Notice that the conditions of “Z” are combinatorially incomplete.  For instance, there is no definition for the conditional probability of “Z” when “X” is true, but “Y” is false.  The function <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code> will detect that and apply the “noisy-or” algorithm.  At the node command line (after loading pcalc.js), enter the above probability network and then try the following:</p>
+<p>Notice that the conditions of “Z” are combinatorially incomplete.  For instance, there is no definition for the conditional probability of “Z” when “X” is true, but “Y” is false.  The function <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a> will detect that and apply the “noisy-or” algorithm.  At the node command line (after loading pcalc.js), enter the above probability network and then try the following:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">completor</span><span class="p">(</span><span class="nx">mynet</span><span class="p">)</span>
 <span class="nx">print</span><span class="p">(</span><span class="nx">mynet</span><span class="p">)</span>
 
@@ -237,7 +237,7 @@
 <dt id="calcs">
 <code class="descname">calcs</code><span class="sig-paren">(</span><em>fs</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#calcs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process a (sorted) list of formulas of the structure <cite>[[h,fid,formula]…]</cite>, where <cite>h</cite> is the sort key (variable dependency “height”), <cite>fid</cite> is the formula identifier of the form <cite>f01</cite>, and <cite>formula</cite> is a string with the formula text in the pcalc syntax.</p>
-<p>The sorted list will have two major groups of probability formulas: assignments and calculations.  Assignments are processed first and used to build the equivalent of a Bayes network.  This network is then “completed” using <code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code>. Among other things, the completor function checks if any conditional variable has an incomplete set of conditions, in which case it uses a “noisy-or” procedure to complete the conditions.  The completor function also makes a list of variables that each conditional variable depends on, and binary-count ordered probabilities for all combinations of those variables.  All this is stored in the Net object, whose reference was passed into the calcs function.   When the Net object is complete, the calcs function will calculate the results of the remaining calculation functions.</p>
+<p>The sorted list will have two major groups of probability formulas: assignments and calculations.  Assignments are processed first and used to build the equivalent of a Bayes network.  This network is then “completed” using <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a>. Among other things, the completor function checks if any conditional variable has an incomplete set of conditions, in which case it uses a “noisy-or” procedure to complete the conditions.  The completor function also makes a list of variables that each conditional variable depends on, and binary-count ordered probabilities for all combinations of those variables.  All this is stored in the Net object, whose reference was passed into the calcs function.   When the Net object is complete, the calcs function will calculate the results of the remaining calculation functions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1059,6 +1059,341 @@ Note that this mirrors :func:`pgiven` in conditional probability assignments, bu
 </div>
 <div class="section" id="the-core-probability-calculator">
 <h2>The core probability calculator<a class="headerlink" href="#the-core-probability-calculator" title="Permalink to this headline">¶</a></h2>
+<p>The DNF section of the calculator transforms formulas into <strong>Disjunctive Normal Form</strong>, where negations are pushed inwards until they are next to simple variables, and where “and” is distributed over “or”.  The resulting formula is a simple list of conjunctions. The DNF section of the calculator consists of the following functions:</p>
+<dl class="function">
+<dt id="completor">
+<code class="descname">completor</code><span class="sig-paren">(</span><em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#completor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Complete the conditional probabilities for any incomplete variable, using the “noisy-or” negation of the product of negations.</p>
+<p>Outline: First we make a list of every variable in the network for reference, and store that in the object as <cite>vars</cite>. for every variable in the network, check if it is “complete” – that is, if all logical combinations of its dependencies have been listed, together with their conditional probabilities. For example, if variable Y has a dependency, <cite>[0.5,’X’]</cite>, then for completeness it should also have a dependency for its logical opposite, like <cite>[0.2,[not,’X’]]</cite>. If the conditions are incomplete, then we collect all the defined conditions and make a list of all the combinations of those conditions, calling each combination a “Factor”.  The probability of a factor is the negation (i.e. one minus) of the product of negations of each positive condition in the factor.  This is the so called “noisy or” approach.  For example, if variable <cite>Z</cite> has the conditions <cite>[ [0.2,’X’], [0.8,’Y’]]</cite>, then to complete the conditions we first calculate all the factors:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">],[</span><span class="nx">not</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">]],</span>    <span class="c1">// no positive conditions in this factor, so prob = 0</span>
+<span class="p">[</span><span class="mf">0.2</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">],</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span>         <span class="c1">// one positive condition in this factor, so prob = 1-0.8 = 0.2</span>
+<span class="p">[</span><span class="mf">0.8</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">]]</span>         <span class="c1">// one positive condition in this factor, so prob = 1-0.2 = 0.8</span>
+<span class="p">[</span><span class="mf">0.84</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span>              <span class="c1">// two positive conditions, so prob = 1-(1-0.2)*(1-0.8) = 0.84</span>
+</pre></div>
+</div>
+<p>The combinations of factors are identified by the two inner for loops (using <cite>i</cite> and <cite>j</cite>) as the indices.  We cycle through the factors (using <cite>i</cite>) and for each factor cycle through the factors again (using <cite>j</cite>), in order to build the combination <cite>[and,Factor(i),Factor(j)]</cite>.  Note that the factors are arbitrary formulas, so we use <a class="reference internal" href="#dnf" title="dnf"><code class="xref js js-func docutils literal notranslate"><span class="pre">dnf()</span></code></a> to standardise the formula.  This may mean that the formulas reduce to <cite>[]</cite>, so we only push the factor if it has content.  The resulting list (<cite>Combos</cite>) is the replacement for the conditional formulas, which are now completed.</p>
+<p>Whether or not the completed variables were calculated through the noisy-or process, or whether they were predefined, we ensure that all conditional variables are DNF by applying <a class="reference internal" href="#condnf" title="condnf"><code class="xref js js-func docutils literal notranslate"><span class="pre">condnf()</span></code></a>. Lastly, we make a simple list of the probabilities in binary count order of the variables in the conditions (we look up the combination in the list of factors, and use the listed probability if the combination matches the factor).  Essentially what this means is that we don’t really need the conditions themselves anymore – we simply simply look up the probability by using the binary count index of the relevant combination of variables. For example, if we’re interested in the conditional probability of <cite>[and,’X’,[not,’Y’]]</cite>, then we get <cite>Z.probs[2]</cite>  because <cite>X,not Y</cite> == <cite>10</cite> in binary, which equals <cite>2</cite> as the index.  We keep the conditional formulas (i.e. factors) in the probability network object for reference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Net</strong> (<em>object</em>) – the probability variable network. The orginal object (passed by reference) is updated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>boolean</strong> – - success or failure of completion</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="condnf">
+<code class="descname">condnf</code><span class="sig-paren">(</span><em>V</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#condnf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform conditions of conditional variables to DNF</p>
+<p>We ensure that the conditions of a conditional variable in a probability network are of the simple form of a (disjunctive) list of all combinations of dependent variables. For example, consider the following example:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kr">const</span> <span class="nx">simple</span> <span class="o">=</span><span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span><span class="nx">nonp</span><span class="o">:</span><span class="p">{},</span>
+               <span class="nx">X</span><span class="o">:</span><span class="p">{</span><span class="kc">true</span><span class="o">:</span><span class="mf">0.2</span><span class="p">},</span>
+               <span class="nx">Y</span><span class="o">:</span><span class="p">{</span><span class="kc">true</span><span class="o">:</span><span class="mf">0.8</span><span class="p">},</span>
+               <span class="nx">Z</span><span class="o">:</span><span class="p">{[</span><span class="s2">&quot;#&quot;</span><span class="p">]</span><span class="o">:</span><span class="p">[</span> <span class="p">[</span><span class="mf">0.8</span><span class="p">,[</span><span class="nx">and</span><span class="p">,</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">]],</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,[</span><span class="nx">or</span><span class="p">,[</span><span class="nx">and</span><span class="p">,</span><span class="s2">&quot;X&quot;</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">]],[</span><span class="nx">and</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s2">&quot;X&quot;</span><span class="p">],</span><span class="s2">&quot;Y&quot;</span><span class="p">]]]</span> <span class="p">]}};</span>
+</pre></div>
+</div>
+<p>Variable <cite>Z</cite> has two conditions, each of which is already DNF.  We’re going to cycle through all combinations of the dependent variables of Z (the outer for loop, indexed by <cite>h</cite>) – so, <cite>[-X,-Y],[-X,Y],[X,-Y]</cite> and <cite>[X,Y]</cite> (in abbreviated notation).  Each combination is initialised with a probability of 0.  The next inner loop (indexed by <cite>k</cite>), cycles through each of the conditional formulas (called Combos).</p>
+<p>The first of the Combos is <cite>[0.8,[and,”X”,”Y”]]</cite> of which <cite>[and,”X”,”Y”]</cite> is the condition itself. The condition does not start with “or” and has all the variables that <cite>Z</cite> depends on, so we skip most of the inner loop, going for a simple comparison against the current variable combination (<cite>h</cite>).  That is, we calculate the index of Combo and compare against <cite>h</cite>.  If there is a match, then we append Combo as the probability and formula for that variable combination.</p>
+<blockquote>
+<div>The next Combo <cite>[0.3,[or,[and,”X”,[not,”Y”]],[and,[not,”X”],”Y”]]]</cite> does start with an “or”, so we drop into the further inner loops that consider each term of the “or” clause. For each term, we create a possible sublist of terms expanded with missing variables. Then, for the expanded list we compare each term against the current variable combination. If there is a match, we append the subterm (and its probabilty inherited from the orignal Combo) as the probability formula for that variable combination.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>V</strong> (<em>string</em>) – variable in the probability network whose conditions we’re transforming</li>
+<li><strong>Net</strong> (<em>object</em>) – the probability network</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – the transformed list of conditionsl formulas</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="orcomplete">
+<code class="descname">orcomplete</code><span class="sig-paren">(</span><em>V</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#orcomplete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the conditions of a conditional probability are complete, i.e. all logical combinations of variables are specified</p>
+<p>From my notes of 2018-06-20: My original thought for “or complete” was that a variable that was conditionally defined wouldn’t need “noisy-or” treatment (negated sum of negated products of the positive conditional variables) if the disjunctive collection of dependencies “cancelled” each other out.  That is, the the conjunction of dependent clauses would resolve to empty. For example, if Y has two conditions, <cite>[0.9,X],[0.5,-X]</cite> then the conditions of Y are complete, because <cite>[and,X,[not,X]]</cite> resolves to <cite>[]</cite>.  However, that didn’t work, because one clause can cancel many other clauses.  For example, if Z is dependent on Y and X, then a clause like <cite>[and,[not,X],[not,Y]]</cite> can cancel all of <cite>[and,X,Y]</cite>, <cite>[and,[not,X],Y]</cite> and <cite>[and,X,[not,Y]]</cite>.
+So then I thought to do pairwise comparison: that is, a clause can only cancel one other term.  If there are left-over uncancelled terms, then that signals incompleteness.  But that didn’t work either, because some terms can be under-specificed.  As the firefox example showed, some conditions can be incomplete.  For example, if the variable <cite>Radar</cite> has the following conditions <cite>[0.3, [and,North,High]]</cite>, <cite>[0.1, [and,North,-High]]</cite>, <cite>[0.05, -North]</cite>.  The last condition is an “incomplete” specification of <cite>[0.05, -North, -High]</cite> and <cite>[0.05, -North, High]</cite>.  When the condition is expanded into the two conditions, the conditional set is complete.
+This led me to the current version of <cite>orcomplete()</cite>, where I check if any of the conditions overlap – when expanded with all combinations of possibly missing variables from that condition.  If that is the case, then the conditional set is too general (i.e. underspecified) and needs noisy-or treatment to complete it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>V</strong> (<em>string</em>) – variable for which we’re checking “or completeness” of the conditions</li>
+<li><strong>Net</strong> (<em>object</em>) – probability network</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>boolean</strong> – returns <cite>true</cite> if the conditions of variable V in Net are complete</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="dnf">
+<code class="descname">dnf</code><span class="sig-paren">(</span><em>Formula</em>, <em>max=10</em><span class="sig-paren">)</span><a class="headerlink" href="#dnf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert logical formula to Disjunctive Normal Form, including resolution of contradictions and removal of duplications.</p>
+<p>This function is an iterative wrapper around :func:distand, because <cite>distand</cite> won’t distribute an “and” generated by :func:distnot. This <a class="reference internal" href="#dnf" title="dnf"><code class="xref js js-func docutils literal notranslate"><span class="pre">dnf()</span></code></a> function will iterate until now further changes occur in the formula.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Formula</strong> (<em>array</em>) – logical formula as list (array) in prefix form, with operators “and”,”or”,”not”,and relation “divide”</li>
+<li><strong>max</strong> (<em>integer</em>) – maximum number of iterations to obtain disjunctive normal form</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns a formula that is the transformation of <cite>Formula</cite> into Disjunctive Normal Form</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="distand">
+<code class="descname">distand</code><span class="sig-paren">(</span><em>L</em>, <em>curop=&quot;null&quot;</em><span class="sig-paren">)</span><a class="headerlink" href="#distand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively look for places to distribute “and” over “or” in or a simple variable, e.g. “X”. Expects list of formulas, but will handle single formula.</p>
+<p>For example:</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">distand</span><span class="p">([</span><span class="nx">or</span><span class="p">,[</span><span class="nx">not</span><span class="p">,[</span><span class="nx">and</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,[</span><span class="nx">not</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">]]],</span><span class="s1">&#39;X&#39;</span><span class="p">,[</span><span class="nx">or</span><span class="p">,</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;B&#39;</span><span class="p">]])</span>
+
+<span class="c1">// result is:</span>
+
+<span class="p">[</span> <span class="p">[</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span> <span class="p">]</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>The parameter <cite>L</cite> is type checked to ensure that it is a list of terms, where a term is either a simple variable or a list (array) consisting of an operator (“and”,”or”,”not”,”given”,”divide”), followed by any number of arguments (which themselves are terms).  The <cite>for</cite> loop of the code processes each term, taking different actions depending on the type of the term.  Two types get special attention: “not” and “and”.  The “not” term is passed into the <a class="reference internal" href="#distnot" title="distnot"><code class="xref js js-func docutils literal notranslate"><span class="pre">distnot()</span></code></a> function, which pushes negations inwards until they next to a simple variable.  For example, <cite>[not,[and,”X”,”Y”]]</cite> is transformed to <cite>[or,[not,”X”],[not,”Y”]]</cite>.</p>
+<p>Processing the “and” term is the main game.  For the “and” term, we first separate all “or” subterms from non-“or” subterms.  This is achieved with the <a class="reference internal" href="#orsfirst" title="orsfirst"><code class="xref js js-func docutils literal notranslate"><span class="pre">orsfirst()</span></code></a> function. Next, if there were less than two or-subterms, we reconstruct the “and” term. If there were 2 or more or-subterms, we generate all combinations of the or-subterm arguments with <a class="reference internal" href="#combos" title="combos"><code class="xref js js-func docutils literal notranslate"><span class="pre">combos()</span></code></a>.  Each of these combinations (with the non-or subterms appended) are the new “and” terms. For example,</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">distand</span><span class="p">([</span><span class="nx">and</span><span class="p">,</span> <span class="p">[</span><span class="nx">or</span><span class="p">,</span><span class="s2">&quot;A&quot;</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">],[</span><span class="nx">or</span><span class="p">,</span><span class="s2">&quot;C&quot;</span><span class="p">,</span><span class="s2">&quot;D&quot;</span><span class="p">],</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">])</span>
+
+<span class="c1">// results in:</span>
+
+<span class="p">[</span> <span class="p">[</span> <span class="s1">&#39;or&#39;</span><span class="p">,</span>
+   <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">],</span>
+   <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">],</span>
+   <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">],</span>
+   <span class="p">[</span> <span class="s1">&#39;and&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span> <span class="p">]</span> <span class="p">]</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that along the way, we also remove contradictory “and” clauses and omit duplicate subterms within “or” term.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>array</em>) – list of formulas</li>
+<li><strong>curop</strong> (<em>string</em>) – the “current operator” if <a class="reference internal" href="#distand" title="distand"><code class="xref js js-func docutils literal notranslate"><span class="pre">distand()</span></code></a> was recursively called from within processing another “or” or “and”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns a formula that is one transformation further towards Disjunctive Normal Form (DNF)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="distnot">
+<code class="descname">distnot</code><span class="sig-paren">(</span><em>F</em><span class="sig-paren">)</span><a class="headerlink" href="#distnot" title="Permalink to this definition">¶</a></dt>
+<dd><p>recursively look for “not” in a formula, and distribute “not” over “and” or “or” expects a single Formula, but can handle singular nesting of the formula. Returns Formulas unchanged if not distribution is possible.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>F</strong> (<em>array</em>) – a single formula, like <cite>[not,[or,”X”,”Y”]]</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns a formula in Negation Normal Form, i.e. where all “not” terms have been pushed inwards until they are next to simple variables</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="orsfirst">
+<code class="descname">orsfirst</code><span class="sig-paren">(</span><em>F</em><span class="sig-paren">)</span><a class="headerlink" href="#orsfirst" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move all non-or clauses to the end of the formula.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>F</strong> (<em>array</em>) – logical formula like <cite>[and,”X”,”Y”,[or,”A”,”B”]]</cite></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>object</strong> – returns an object where “ors” is a list of all or-terms, and “rest” is a list of the remaining terms</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="lookup">
+<code class="descname">lookup</code><span class="sig-paren">(</span><em>F</em>, <em>Net</em>, <em>val=true</em><span class="sig-paren">)</span><a class="headerlink" href="#lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lookup value of a variable, or of a conditional.  For example, <cite>lookup(‘Rain’,wg)</cite> or <cite>lookup([given,’Sprinkler’,[not,’Rain’]],wg)</cite></p>
+<p>When looking up a single variable, the function simple uses the variable name as a key into the <cite>Net</cite> object.  When looking up a conditional formula, it uses the dependent variable as a key, and then linearly looks through the conditional formulas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>F</strong> (<em>array</em>) – string of “Variable” type, or</li>
+<li><strong>Net</strong> (<em>object</em>) – probability network</li>
+<li><strong>val</strong> (<em>*</em>) – particular value to look for: <cite>true</cite>, <cite>formulas</cite>, or <cite>logic</cite>. The latter reconstructs formulas into a single disjunctive formula. Todo: <a class="reference internal" href="#lookup" title="lookup"><code class="xref js js-func docutils literal notranslate"><span class="pre">lookup()</span></code></a> should also be able to lookup negations of variables i.e. <cite>lookup([not,’Rain’],wg)</cite></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="combos">
+<code class="descname">combos</code><span class="sig-paren">(</span><em>List</em><span class="sig-paren">)</span><a class="headerlink" href="#combos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate all maximally sized combinations of a formula with sub-junctions and switch functors.  In other words, distribute “or” over “and” or vice versa.
+For example, <cite>combos([and,[or,A,B],[or,C,D],[or,E,F]])</cite> results in <cite>[or,[and,A,C,E],[and,A,C,F],[and,A,D,E],[and,A,D,F],[and,B,C,E],[and,B,C,F],[and,B,D,E],[and,B,D,F]]</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>List</strong> (<em>array</em>) – logic formula, especially one with “or” or “and” subterms.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns logic formula where disjunctive or conjunctive subterms have been recombined</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="combos0">
+<code class="descname">combos0</code><span class="sig-paren">(</span><em>List</em><span class="sig-paren">)</span><a class="headerlink" href="#combos0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Core recursive function for <a class="reference internal" href="#combos" title="combos"><code class="xref js js-func docutils literal notranslate"><span class="pre">combos()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>List</strong> (<em>array</em>) – logic formula, especially one with “or” or “and” subterms.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns logic formula where disjunctive or conjunctive subterms have been recombined</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="has">
+<code class="descname">has</code><span class="sig-paren">(</span><em>X</em>, <em>V</em>, <em>cond=false</em><span class="sig-paren">)</span><a class="headerlink" href="#has" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a term has a particular value (which may be another term). Expects a Negation Normal Form (NNF) list of terms,  NOT A FORMULA, because it needs to examine the term type to decide how to handle the search. The parameter “cond” controls if conditional terms need to be searched in general, for disjunctive lists, don’t search the conditionals, but for conjunctive lists, do.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>*</em>) – string of type “Variable” or term</li>
+<li><strong>V</strong> (<em>array</em>) – term to search in</li>
+<li><strong>cond</strong> (<em>boolean</em>) – boolean to control whether to search within conditional terms</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>boolean</strong> – returns true if V contains X.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="equals">
+<code class="descname">equals</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em><span class="sig-paren">)</span><a class="headerlink" href="#equals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare two formulas (arrays), unordered except for the first element (i.e. the operator in formulas) or where the formula is a conditional. The <a class="reference internal" href="#equals" title="equals"><code class="xref js js-func docutils literal notranslate"><span class="pre">equals()</span></code></a> function will also compare objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>array</em>) – first formula to compare with…</li>
+<li><strong>Y</strong> (<em>array</em>) – …second formula</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>boolean</strong> – - <cite>true</cite> if X equals Y, otherwise <cite>false</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="typet">
+<code class="descname">typet</code><span class="sig-paren">(</span><em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#typet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the type of a term in a formula</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>T</strong> (<em>*</em>) – string of type “Variable” or term (i.e. array where first element is an operator)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – the term type of T</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="type">
+<code class="descname">type</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="headerlink" href="#type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the javascript type of the value of X</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>*</em>) – any valid js type</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – type of X</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 
