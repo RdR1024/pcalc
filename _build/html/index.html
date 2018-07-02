@@ -47,6 +47,14 @@
 <p>You have to evaluate the last formula first, because Y depends on having a value for X.  The <a class="reference internal" href="#sortfs" title="sortfs"><code class="xref js js-func docutils literal notranslate"><span class="pre">sortfs()</span></code></a> performs this task. One more point worth noting is that <code class="xref js js-func docutils literal notranslate"><span class="pre">sorfs()</span></code> also constructs a global object called <cite>Dlist</cite> which contains all the variables from all the formulas and has a simple dependency list for each.  For example, if the text contains the following formulas, <cite>pr X=0.5</cite>, <cite>pr Y given X = 0.2</cite> and <cite>pr Z given X or Y = 0.5</cite>, then <cite>Dlist</cite> will contain the following:</p>
 <blockquote>
 <div>{ “X”:null, “Y”:[“X”], “Z”:[“X”,”Y”] }</div></blockquote>
+<p>The following are some examples of probability problems that you can try out (they also appear in the user guide in more expanded form). To try them, use the string as the parameter in the <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a> function, for example, <cite>calcvars(WG)</cite>.</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">WG</span> <span class="o">=</span> <span class="s2">&quot;`pr Rain=0.2` `pr Sprinkler:Rain=0.01` `pr Sprinkler:-Rain=0.4` `pr Wet:-Sprinkler,-Rain=0` `pr Wet:-Sprinkler,Rain=0.8` `pr Wet:Sprinkler,-Rain=0.9` `pr Wet:Sprinkler,Rain=0.99` `%pr Wet?` &quot;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">Simple</span> <span class="o">=</span> <span class="s2">&quot;&lt;p&gt;`probability of Y given X is 50%`&lt;/p&gt;&lt;p&gt;`probability of X is 50%`&lt;/p&gt;&lt;p&gt;So, the `%probability of Y?`&lt;/p&gt;&quot;</span><span class="p">;</span>
+
+<span class="kd">var</span> <span class="nx">Black</span> <span class="o">=</span> <span class="s2">&quot;`pr Plane=10%` `pr Drone=5%` `pr Intercept:Plane=85%` `pr Intercept: -Plane=10%` `pr Report: Drone=95%` `pr Report: -Drone=5%` `pr RusExpert: Plane=80%` `pr RusExpert: -Plane=40%` `pr USExpert: Drone=70%` `pr USExpert: -Drone=20%` `pr Radar:Drone=95%` `pr Radar: Plane=90%` `pr Radar: -(Plane or Drone) =0.5%` `%pr Plane: (Intercept &amp; Report &amp; Radar &amp;  -RusExpert &amp; -USExpert)`&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p>The next major section starts with the function <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> and comprises the formula interpreter. This formula interpreter is called for every formula in the html content, from the function <a class="reference internal" href="#calcs" title="calcs"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcs()</span></code></a> in the wrapper section.  The formula interpreter will use “assignment formulas” to update an object (typically called “U”) which ultimately contains the probability network variables and their definitions.  This object is then used later to calculate the results of formulas.  Even though <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> only interpretes one formula at the time, the <cite>U</cite> object stores or updates any variable assignments.  This way, successive calls to <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a> will incrementally build the probability network in <cite>U</cite>. The wrapper section initialises <cite>U</cite>, which is by default not global.  However, for debugging, <cite>U</cite> can easily be made a global object (see the commented out lines in <a class="reference internal" href="#calcvars" title="calcvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">calcvars()</span></code></a>).</p>
 <div class="section" id="overview-of-the-interpreter-sub-module">
 <h3>Overview of the interpreter sub-module<a class="headerlink" href="#overview-of-the-interpreter-sub-module" title="Permalink to this headline">¶</a></h3>
@@ -108,7 +116,7 @@
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nx">err</span><span class="o">:</span> <span class="nx">ErrorStatus</span><span class="p">,</span> <span class="nx">val</span><span class="o">:</span> <span class="nx">ValueOfTheInterpretation</span><span class="p">,</span> <span class="nx">tail</span><span class="o">:</span> <span class="nx">RestOfTheTokens</span><span class="p">}</span>
 </pre></div>
 </div>
-<p>The interpreter will evaluate the expressions it’s given and return a result back to the top level function (i.e. <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>).  However, the as far as probability formulas is concerned, the interpreter is a “lazy interpreter” – it waits until the last possible moment to evaluate the formula.  In fact, there are only two functions where that evaluation takes place: <a class="reference internal" href="#pexpression" title="pexpression"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexpression()</span></code></a> and <a class="reference internal" href="#vgiven" title="vgiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code></a>, both of which call the function <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> after they get the result from the expression parser <a class="reference internal" href="#pexp" title="pexp"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexp()</span></code></a>.</p>
+<p>The interpreter will evaluate the expressions it’s given and return a result back to the top level function (i.e. <a class="reference internal" href="#pcalc" title="pcalc"><code class="xref js js-func docutils literal notranslate"><span class="pre">pcalc()</span></code></a>).  However, the as far as probability formulas is concerned, the interpreter is a “lazy interpreter” – it waits until the last possible moment to evaluate the formula.  In fact, there are only two functions where that evaluation takes place: <a class="reference internal" href="#pexpression" title="pexpression"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexpression()</span></code></a> and <a class="reference internal" href="#vgiven" title="vgiven"><code class="xref js js-func docutils literal notranslate"><span class="pre">vgiven()</span></code></a>, both of which call the function <a class="reference internal" href="#prob" title="prob"><code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code></a> after they get the result from the expression parser <a class="reference internal" href="#pexp" title="pexp"><code class="xref js js-func docutils literal notranslate"><span class="pre">pexp()</span></code></a>.</p>
 <p>You can play around with probability formulas (the logic part) without actually evaluating them. Try the following:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">print</span><span class="p">(</span> <span class="nx">pexp</span><span class="p">([</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="nx">and</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="nx">or</span><span class="p">,</span><span class="nx">not</span><span class="p">,</span><span class="s2">&quot;Z&quot;</span><span class="p">],</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="p">)</span>
 
@@ -121,7 +129,7 @@
 </div>
 <div class="section" id="overview-of-the-probability-calculator-sub-module">
 <h3>Overview of the probability calculator sub-module<a class="headerlink" href="#overview-of-the-probability-calculator-sub-module" title="Permalink to this headline">¶</a></h3>
-<p>Once the interpreter has translated the probability formula into the internal operator-prefix structure, and updated the user space with the variable assignments, we can calculate probability results with the <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> function.  This function requires a formula in prefix notation and a user space object and returns the resulting probability.</p>
+<p>Once the interpreter has translated the probability formula into the internal operator-prefix structure, and updated the user space with the variable assignments, we can calculate probability results with the <a class="reference internal" href="#prob" title="prob"><code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code></a> function.  This function requires a formula in prefix notation and a user space object and returns the resulting probability.</p>
 <p>Note that there is one intermediate step necessary before we can use a user space object.  That is, we need to run the <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a> function over the user space object, to ensure that all the conditional variables in the probability network have a <em>complete</em> set of conditions.  If the conditions are only partially defined, then the <a class="reference internal" href="#completor" title="completor"><code class="xref js js-func docutils literal notranslate"><span class="pre">completor()</span></code></a> function will detect that and apply the “noisy-or” algorithm to try and complete the conditions.  The “noisy-or” algorithm essentially calculates for each combination of dependent variables the negation of the product of negated positive dependent variables.  For example, assume that we have defined the following probability network:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">var</span> <span class="nx">mynet</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="s2">&quot;mynet&quot;</span><span class="p">,</span>
     <span class="nx">X</span><span class="o">:</span> <span class="p">{</span><span class="kc">true</span><span class="o">:</span> <span class="mf">0.2</span><span class="p">},</span>
@@ -149,7 +157,7 @@
     <span class="nx">vars</span><span class="o">:</span> <span class="p">[</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span> <span class="p">]</span> <span class="p">}</span>
 </pre></div>
 </div>
-<p>Once the probability network is complete, we can use <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> to evaluate probability calculations over that network.  For example, if we want to know the probability of <cite>X or Y</cite>, we can enter the following:</p>
+<p>Once the probability network is complete, we can use <a class="reference internal" href="#prob" title="prob"><code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code></a> to evaluate probability calculations over that network.  For example, if we want to know the probability of <cite>X or Y</cite>, we can enter the following:</p>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">prob</span><span class="p">([</span><span class="nx">or</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span><span class="nx">mynet</span><span class="p">)</span>
 
 <span class="c1">// result is:</span>
@@ -178,7 +186,7 @@
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="nx">Y</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nx">B</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nx">A</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nx">C</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="nx">A</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The way we obtain the relevant probability for each variable is to look it up in the probability network.  The calculation of probability of a DNF formula is handled by the <code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code> function (Note: the function will apply DNF – you do not need to apply dnf beforehand).  This probability function needs to handle a few complications.  Firstly, the possible operators in a function are <cite>not</cite>,`or`,`and` and <cite>divide</cite>.  The latter originates from the (Kolmogorov) axiomatic definition of <cite>given</cite>:  <cite>prob X given Y</cite> == <cite>prob(X and Y) / prob Y</cite>.  Note that we have taken care of supplementary definitions in the DNF resolution.  That is, <cite>X given Y</cite> is:</p>
+<p>The way we obtain the relevant probability for each variable is to look it up in the probability network.  The calculation of probability of a DNF formula is handled by the <a class="reference internal" href="#prob" title="prob"><code class="xref js js-func docutils literal notranslate"><span class="pre">prob()</span></code></a> function (Note: the function will apply DNF – you do not need to apply dnf beforehand).  This probability function needs to handle a few complications.  Firstly, the possible operators in a function are <cite>not</cite>,`or`,`and` and <cite>divide</cite>.  The latter originates from the (Kolmogorov) axiomatic definition of <cite>given</cite>:  <cite>prob X given Y</cite> == <cite>prob(X and Y) / prob Y</cite>.  Note that we have taken care of supplementary definitions in the DNF resolution.  That is, <cite>X given Y</cite> is:</p>
 <ul class="simple">
 <li>1 (i.e. <cite>[] / []</cite>) if both X and Y resolve to <cite>[]</cite></li>
 <li>0 if either, but not both, of X or Y resolves to <cite>[]</cite></li>
@@ -198,7 +206,7 @@
 </pre></div>
 </div>
 <p>There is one other complications that the probability calculation needs to handle.  In the <cite>simple</cite> example above, consider the probability of <cite>[or,’X’,’Y’]</cite>. The formula is DNF, but we can’t simple look up and add the probabilities of ‘X’ and ‘Y’.  The reason is that <cite>X</cite> and <cite>Y</cite> overlap if you consider all combinations. The possibilities where <cite>X</cite> is true are <cite>X and Y</cite> and <cite>X and not Y</cite>.  The possibilities where <cite>Y</cite> is true are <cite>Y and X</cite> and <cite>Y and not X</cite>.  So, they overlap on <cite>X and Y</cite> and we need to ensure that that possibility isn’t double counted. In other words, the true sum is the probabilities of <cite>X and Y</cite> + <cite>X and not Y</cite> + <cite>not X and Y</cite>, which equals <cite>0.2 * 0.8 + 0.2 * (1-0.8) + (1-0.2)*0.8 == 0.84</cite></p>
-<p>The function <code class="xref js js-func docutils literal notranslate"><span class="pre">jprobs()</span></code> takes care of avoiding duplications in the probability calculation.  It does this pretty much as we would do it naturally: it expands variables in each term of the disjunctive list and marks every combination as “used” in a bitarray, while adding up the probabilities of terms.  The bitarray is simply a true/false value (i.e. “used” or “not used”), indexed by the logical combination of possible variables.  So, ‘not X and not Y’ would be index 0, ‘not X and Y’ would be index 1, ‘X and not Y` would be index 2, and <cite>X and Y</cite> would be index 3.  We always use “binary count order” of the variables, where the variables themselves are in alphabetical order. The helper function of <code class="xref js js-func docutils literal notranslate"><span class="pre">allvars()</span></code> expands a term to cover all possible combinations of variables.  Further helper functions of <code class="xref js js-func docutils literal notranslate"><span class="pre">vars2x()</span></code> and <code class="xref js js-func docutils literal notranslate"><span class="pre">x2v()</span></code> convert variable combinations to index values and vice versa.</p>
+<p>The function <a class="reference internal" href="#jprobs" title="jprobs"><code class="xref js js-func docutils literal notranslate"><span class="pre">jprobs()</span></code></a> takes care of avoiding duplications in the probability calculation.  It does this pretty much as we would do it naturally: it expands variables in each term of the disjunctive list and marks every combination as “used” in a bitarray, while adding up the probabilities of terms.  The bitarray is simply a true/false value (i.e. “used” or “not used”), indexed by the logical combination of possible variables.  So, ‘not X and not Y’ would be index 0, ‘not X and Y’ would be index 1, ‘X and not Y` would be index 2, and <cite>X and Y</cite> would be index 3.  We always use “binary count order” of the variables, where the variables themselves are in alphabetical order. The helper function of <a class="reference internal" href="#allvars" title="allvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">allvars()</span></code></a> expands a term to cover all possible combinations of variables.  Further helper functions of <a class="reference internal" href="#vars2x" title="vars2x"><code class="xref js js-func docutils literal notranslate"><span class="pre">vars2x()</span></code></a> and <a class="reference internal" href="#x2v" title="x2v"><code class="xref js js-func docutils literal notranslate"><span class="pre">x2v()</span></code></a> convert variable combinations to index values and vice versa.</p>
 </div>
 </div>
 </div>
@@ -1388,6 +1396,297 @@ For example, <cite>combos([and,[or,A,B],[or,C,D],[or,E,F]])</cite> results in <c
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>string</strong> – type of X</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>The very core section of the calculator is the one that actually calculates probabilities.  It expects very simple DNF formulas, which are essentially lists of conjunctions of variables (i.e. no “divide” operator).  It then looks up the probabilities of each term in a conjunction and multiplies those together, after which it sums all the resulting probabilities.</p>
+<dl class="function">
+<dt id="prob">
+<code class="descname">prob</code><span class="sig-paren">(</span><em>Formula</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#prob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a DNF probability formula and calculate the resulting numerical probability</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Formula</strong> (<em>array</em>) – a DNF formula</li>
+<li><strong>Net</strong> (<em>object</em>) – a probability network object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>real</strong> – - probability Note 1: expects that rules for conditional transformations (i.e. “given” to “divide”) is handled by DNF processing – so, no divides-by-zero</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="jprobs">
+<code class="descname">jprobs</code><span class="sig-paren">(</span><em>F</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#jprobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the probabilities of a (disjunctive) list of conjunctions. Expects a disjunction (DNF).</p>
+<p>The simplest case is something like <cite>[or, [and,[not,’X’],[not,’Y’]], [and,[not,’X’],’Y’], [and,’X’,[not,’Y’]], [and,’X’,’Y’] ]</cite>. Here we convert every conjunction to its index value, based on whether a variable is true in the term. So, for the terms in the example, the binary values would be 00,01,10,11, respectively – meaning index values of 0,1,2,3. We then look up the probability associated with that index (i.e. with that combination of variables) in the probability network.</p>
+<p>Two complications need to be handled.  One is missing variables.  For example, if we encounter a term <cite>X</cite> by itself, then we might need to expand that to <cite>[or,[and,’X’,[not,’Y’]],[and,’X’,’Y’]]</cite>, depending on which variables are present in the probability network. This expansion is handled by the function <a class="reference internal" href="#allvars" title="allvars"><code class="xref js js-func docutils literal notranslate"><span class="pre">allvars()</span></code></a>. When this happens, we have to process each expanded term separately, which is handled in the inner <cite>for</cite> loop.</p>
+<p>The second complication is that, if we expand terms, we have to avoid processing duplicates.  This is handled by marking each term that we’ve already encountered in a bitmap and skipping over terms whose bit is already set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>F</strong> (<em>array</em>) – disjunction formula</li>
+<li><strong>Net</strong> (<em>object</em>) – probability network</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>real</strong> – - probability</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="jprob">
+<code class="descname">jprob</code><span class="sig-paren">(</span><em>Vars</em>, <em>Net</em><span class="sig-paren">)</span><a class="headerlink" href="#jprob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lookup the joint probability of a conjunction of simple terms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Vars</strong> (<em>array</em>) – a conjunction of variables or negations of variables</li>
+<li><strong>Net</strong> (<em>object</em>) – a probability network</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>real</strong> – returns the probability of the conjunction</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="allvars">
+<code class="descname">allvars</code><span class="sig-paren">(</span><em>L</em>, <em>Vars</em><span class="sig-paren">)</span><a class="headerlink" href="#allvars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand a variable combination in a formula to include all combinations when some possible variables are missing. Expects L to be a conjunction of variables or their negations.
+For example, <cite>allvars([‘X’],[‘X’,’Y’])</cite> will return <cite>[[X,[not,’Y’]],[‘X’,’Y’]]</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>array</em>) – list of variables or negations of variables</li>
+<li><strong>Vars</strong> (<em>array</em>) – list of possible variables</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns an expanded list of terms if any variables were missing from the original</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="getvars">
+<code class="descname">getvars</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#getvars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract all variables from a list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>L</strong> (<em>array</em>) – formula or list. Variables are defined as alphanumeric strings that start with an uppercase letter.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="getvars0">
+<code class="descname">getvars0</code><span class="sig-paren">(</span><em>L</em>, <em>Res</em><span class="sig-paren">)</span><a class="headerlink" href="#getvars0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursive subfunction to extract all variables from a list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>L</strong> (<em>array</em>) – formula or list. Variables are defined as alphanumeric strings that start with an uppercase letter.</li>
+<li><strong>Res</strong> (<em>array</em>) – already collected variables</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="bcombos">
+<code class="descname">bcombos</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#bcombos" title="Permalink to this definition">¶</a></dt>
+<dd><p>All positive and negative combinations of a list of variables, e.g. [X,Y] becomes [ [[not,X],[not,Y]], [[not,X],Y], [X,[not,Y]], [X,Y] ]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>array</em>) – list of variables</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns all positive and negative combinations of a list of variables</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="x2v">
+<code class="descname">x2v</code><span class="sig-paren">(</span><em>X</em>, <em>Vs</em><span class="sig-paren">)</span><a class="headerlink" href="#x2v" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate an index of a binary-count ordered list into the boolean combination of variables.  For example, if the alphabetically sorted variable list is X,Y then [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>integer</em>) – index for binary-count ordered list of variable combinations</li>
+<li><strong>Vs</strong> (<em>array</em>) – list of strings of type “Variable”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns the boolean combination of variables that represents the index value</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="x2vsub">
+<code class="descname">x2vsub</code><span class="sig-paren">(</span><em>X</em>, <em>Vs</em>, <em>Varlist</em><span class="sig-paren">)</span><a class="headerlink" href="#x2vsub" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an index that represents the combination of boolean variables (from the variables list Vs) into a list of variable combinations from the list Varlist.</p>
+<p>The idea here is that Vs is a subset of Varlist, so that the index of the sublist might match more than one combination of variables in Varlist.  For example, if Vs=[X,Y] and Varlist=[X,Y,Z], then the index value of 2 represents [[not,X],Y] in the combinations from Vs.  However, that expands into [ [[not,X],Y,[not,Z]], [[not,X],Y,Z] ] relative to the larger set of variables in Varlist.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>integer</em>) – index for a binary-count ordered list of variable combinations</li>
+<li><strong>Vs</strong> (<em>array</em>) – list of strings of type “Variable”</li>
+<li><strong>Varlist</strong> (<em>array</em>) – complete list of available strings of type “Variable”</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>array</strong> – returns the boolean combination of variables that represents the index</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="v2x">
+<code class="descname">v2x</code><span class="sig-paren">(</span><em>Terms</em><span class="sig-paren">)</span><a class="headerlink" href="#v2x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a term list (i.e. list of variables or their negations) to a binary count order index. For example, [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3</p>
+<p>First we extract all variables from the list, which we then use to get the index of the particular combination.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>Terms</strong> (<em>array</em>) – list of variables or negations of variables</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>integer</strong> – returns the index value of the given boolean combination of variables</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="vars2x">
+<code class="descname">vars2x</code><span class="sig-paren">(</span><em>T</em>, <em>Vs</em><span class="sig-paren">)</span><a class="headerlink" href="#vars2x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a term list (i.e. list of variables or their negations) to a binary count order index, based on a list of variables. For example, for the variable list [X,Y], we have the following indices for boolean combinations of the variables: [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3</p>
+<p>First we extract all variables from the list, which we then use to get the index of the particular combination.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>T</strong> (<em>array</em>) – the given boolean combination variables or negations of variables</li>
+<li><strong>Vs</strong> (<em>array</em>) – the list of possible variables</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>integer</strong> – returns the index value of the given boolean combination of variables</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="x2x">
+<code class="descname">x2x</code><span class="sig-paren">(</span><em>X</em>, <em>Vs</em>, <em>Varlist</em><span class="sig-paren">)</span><a class="headerlink" href="#x2x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert index of boolean combination of variables from a (sub)list into the indices for a (super)set of variables. See also <a class="reference internal" href="#x2vsub" title="x2vsub"><code class="xref js js-func docutils literal notranslate"><span class="pre">x2vsub()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>integer</em>) – index representing a boolean combination of variables</li>
+<li><strong>Vs</strong> (<em>array</em>) – list of variables used in X</li>
+<li><strong>Varlist</strong> (<em>array</em>) – (larger) list of available variables</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>ingeger</strong> – -</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="product">
+<code class="descname">product</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="headerlink" href="#product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply probabilities in a list using log transformation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first simple">
+<li><strong>L</strong> (<em>array</em>) – list of real values (0 &lt;= x &lt;=1) i.e. probabilities</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><strong>real</strong> – returns the product of the values in the list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="BitArray">
+<em class="property">class </em><code class="descname">BitArray</code><span class="sig-paren">(</span><em>totalbits</em><span class="sig-paren">)</span><a class="headerlink" href="#BitArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple BitArray implementation</p>
+<p>Methods: <cite>zero</cite> to zero out all bits, <cite>setbit</cite> to set a bit, <cite>getbit</cite> to get the value of a bit, <cite>unsetbit</cite> to set a bit to zero, <cite>getones</cite> to get a list of indices of all the bits that are set to <cite>true</cite>, <cite>bitsum</cite> to get the total number of bits that are set to one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Arguments:</th><td class="field-body"><ul class="first last simple">
+<li><strong>totalbits</strong> (<em>integer</em>) – total number of bits that the BitArray should cover – i.e. the minimum size of the bitarray in bits. The actual size is sometimes larger, because the array is implemented in 8-bit increments (bytes).</li>
+</ul>
 </td>
 </tr>
 </tbody>

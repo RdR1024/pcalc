@@ -26,6 +26,18 @@ You have to evaluate the last formula first, because Y depends on having a value
     { "X":null, "Y":["X"], "Z":["X","Y"] }
 
 
+The following are some examples of probability problems that you can try out (they also appear in the user guide in more expanded form). To try them, use the string as the parameter in the :func:`calcvars` function, for example, `calcvars(WG)`. 
+
+.. code-block:: js
+
+    var WG = "`pr Rain=0.2` `pr Sprinkler:Rain=0.01` `pr Sprinkler:-Rain=0.4` `pr Wet:-Sprinkler,-Rain=0` `pr Wet:-Sprinkler,Rain=0.8` `pr Wet:Sprinkler,-Rain=0.9` `pr Wet:Sprinkler,Rain=0.99` `%pr Wet?` ";
+
+    var Simple = "<p>`probability of Y given X is 50%`</p><p>`probability of X is 50%`</p><p>So, the `%probability of Y?`</p>";
+
+    var Black = "`pr Plane=10%` `pr Drone=5%` `pr Intercept:Plane=85%` `pr Intercept: -Plane=10%` `pr Report: Drone=95%` `pr Report: -Drone=5%` `pr RusExpert: Plane=80%` `pr RusExpert: -Plane=40%` `pr USExpert: Drone=70%` `pr USExpert: -Drone=20%` `pr Radar:Drone=95%` `pr Radar: Plane=90%` `pr Radar: -(Plane or Drone) =0.5%` `%pr Plane: (Intercept & Report & Radar &  -RusExpert & -USExpert)`";
+
+
+
 The next major section starts with the function :func:`pcalc` and comprises the formula interpreter. This formula interpreter is called for every formula in the html content, from the function :func:`calcs` in the wrapper section.  The formula interpreter will use "assignment formulas" to update an object (typically called "U") which ultimately contains the probability network variables and their definitions.  This object is then used later to calculate the results of formulas.  Even though :func:`pcalc` only interpretes one formula at the time, the `U` object stores or updates any variable assignments.  This way, successive calls to :func:`pcalc` will incrementally build the probability network in `U`. The wrapper section initialises `U`, which is by default not global.  However, for debugging, `U` can easily be made a global object (see the commented out lines in :func:`calcvars`).
 
 
@@ -324,7 +336,6 @@ The DNF section of the calculator transforms formulas into **Disjunctive Normal 
 
 .. autofunction:: condnf
 
-
 .. autofunction:: orcomplete
 
 .. autofunction:: dnf
@@ -348,3 +359,35 @@ The DNF section of the calculator transforms formulas into **Disjunctive Normal 
 .. autofunction:: typet
 
 .. autofunction:: type
+
+
+The very core section of the calculator is the one that actually calculates probabilities.  It expects very simple DNF formulas, which are essentially lists of conjunctions of variables (i.e. no "divide" operator).  It then looks up the probabilities of each term in a conjunction and multiplies those together, after which it sums all the resulting probabilities.
+
+
+.. autofunction:: prob
+
+.. autofunction:: jprobs
+
+.. autofunction:: jprob
+
+.. autofunction:: allvars
+
+.. autofunction:: getvars
+
+.. autofunction:: getvars0
+
+.. autofunction:: bcombos
+
+.. autofunction:: x2v
+
+.. autofunction:: x2vsub
+
+.. autofunction:: v2x
+
+.. autofunction:: vars2x
+
+.. autofunction:: x2x
+
+.. autofunction:: product
+
+.. autoclass:: BitArray

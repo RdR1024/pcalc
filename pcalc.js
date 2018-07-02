@@ -20,7 +20,6 @@ var Dlist={};   // global variable dependency list
 // calcvars as Content:
 var WG = "`pr Rain=0.2` `pr Sprinkler:Rain=0.01` `pr Sprinkler:-Rain=0.4` `pr Wet:-Sprinkler,-Rain=0` `pr Wet:-Sprinkler,Rain=0.8` `pr Wet:Sprinkler,-Rain=0.9` `pr Wet:Sprinkler,Rain=0.99` `%pr Wet?` ";
 var Simple = "<p>`probability of Y given X is 50%`</p><p>`probability of X is 50%`</p><p>So, the `%probability of Y?`</p>";
-var Kernel = "`pr S=1%` `pr V1=5%` `pr V2=5%` `pr V3=5%` `pr W1p=1%` `pr W2p=1%` `pr W3p=1%` `pr W1:W1p=100%` `pr W1:S=90%` `pr W2:W2p=100%` `pr W2:S=90%` `pr W3:W3p=100%`  `pr W3:S=90%` `pr W1:V1 & -S=40%` `pr W2:V2 & -S=40%` `pr W3:V3 & -S=40%` `%pr W1?` `%pr W2?` `%pr W3?` `%pr W3: W1,V1,W2,V2?` `%pr S:W1,V1,W2,V2,W3,V3?`"; 
 var Loop = "`pr X:Y=0.5` `pr Y:X=0.5` `pr Y?`";
 var Unbalanced = "`pr X=0.5";
 var Black = "`pr Plane=10%` `pr Drone=5%` `pr Intercept:Plane=85%` `pr Intercept: -Plane=10%` `pr Report: Drone=95%` `pr Report: -Drone=5%` `pr RusExpert: Plane=80%` `pr RusExpert: -Plane=40%` `pr USExpert: Drone=70%` `pr USExpert: -Drone=20%` `pr Radar:Drone=95%` `pr Radar: Plane=90%` `pr Radar: -(Plane or Drone) =0.5%` `%pr Plane: (Intercept & Report & Radar &  -RusExpert & -USExpert)`";
@@ -2087,8 +2086,15 @@ function type(X){ return Object.prototype.toString.call(X).slice(8,-1); }
 
 // PROBABILITY CALCULATION SECTION
 
-// process a DNF formula and calculate the probability
-// expects a formula and a completed probability network
+/**
+ * Process a DNF probability formula and calculate the resulting numerical probability
+ * 
+ * @param {array} Formula - a DNF formula 
+ * @param {object} Net  - a probability network object
+ * @return {real} - probability
+ * 
+ * Note 1: expects that rules for conditional transformations (i.e. "given" to "divide") is handled by DNF processing -- so, no divides-by-zero
+ */
 function prob(Formula,Net){
     var F=dnf(Formula);
     if([and,not,"Variable"].includes(typet(F))){
@@ -2105,8 +2111,19 @@ function prob(Formula,Net){
     } else throw "no DNF formula: can not calculate probability";
 }
 
-// calculate the probabilities of a (disjunctive) list of conjunctions. Expects a disjunctive (DNF) 
-// formula of only conjunctions or simple terms (i.e. no divides), and a probability network
+/**
+ * calculate the probabilities of a (disjunctive) list of conjunctions. Expects a disjunction (DNF).
+ * 
+ * The simplest case is something like `[or, [and,[not,'X'],[not,'Y']], [and,[not,'X'],'Y'], [and,'X',[not,'Y']], [and,'X','Y'] ]`. Here we convert every conjunction to its index value, based on whether a variable is true in the term. So, for the terms in the example, the binary values would be 00,01,10,11, respectively -- meaning index values of 0,1,2,3. We then look up the probability associated with that index (i.e. with that combination of variables) in the probability network.
+ * 
+ * Two complications need to be handled.  One is missing variables.  For example, if we encounter a term `X` by itself, then we might need to expand that to `[or,[and,'X',[not,'Y']],[and,'X','Y']]`, depending on which variables are present in the probability network. This expansion is handled by the function :func:`allvars`. When this happens, we have to process each expanded term separately, which is handled in the inner `for` loop.
+ * 
+ * The second complication is that, if we expand terms, we have to avoid processing duplicates.  This is handled by marking each term that we've already encountered in a bitmap and skipping over terms whose bit is already set.
+ * 
+ * @param {array} F - disjunction formula
+ * @param {object} Net - probability network
+ * @return {real} - probability
+ */
 function jprobs(F,Net){
     if(type(Net)!="Object") throw "no probability network";
     var Varlist = Net.vars;
@@ -2138,7 +2155,13 @@ function jprobs(F,Net){
     return Ps;
 }
 
-// lookup the joint probability of a conjunction of atomic terms (i.e. Var or negation of Var)
+/**
+ * Lookup the joint probability of a conjunction of simple terms.
+ * 
+ * @param {array} Vars - a conjunction of variables or negations of variables
+ * @param {object} Net - a probability network
+ * @return {real}  returns the probability of the conjunction
+ */
 function jprob(Vars, Net){
     if(type(Net)!="Object") throw "no probability network";
     if(type(Vars)!="Array"){ return jprob([Vars],Net); }
@@ -2163,9 +2186,9 @@ function jprob(Vars, Net){
             else{
                 Vs=Net[V].vars;
                 if(type(Vs)=="Undefined") throw "probability network incomplete in variable "+ Vars[i];
-                X = v2x(Vars);
-                Y = x2x(X,Vs,Varlist);
-                P = Net[V].probs[Y];
+                X = v2x(Vars);          // get the index value of the variable combination
+                Y = x2x(X,Vs,Varlist);  // transform to an index value relative to all possible variables
+                P = Net[V].probs[Y];    // lookup the probability of that index in the probability network
                 if(type(P)=="Undefined") throw "probability undefined for "+Vars[i];
                 Ps.push( neg? 1-P : P);
             }
@@ -2174,9 +2197,17 @@ function jprob(Vars, Net){
     return Ps;
 }
 
-// expand a variable combination in a formula to include all combinations when
-// some possible variables are missing. Expects L to be a conjunction of variables
-// or their negations.  Returns a list of expansions
+// 
+// 
+// 
+/**
+ * Expand a variable combination in a formula to include all combinations when some possible variables are missing. Expects L to be a conjunction of variables or their negations.  
+ * For example, `allvars(['X'],['X','Y'])` will return `[[X,[not,'Y']],['X','Y']]`
+ *  
+ * @param {array} L - list of variables or negations of variables 
+ * @param {array} Vars - list of possible variables
+ * @return {array} returns an expanded list of terms if any variables were missing from the original
+ */
 function allvars(L,Vars){
     var F = typet(L)=="Variable" || typet(L)==not? [L] : L;
     var Missing =[];
@@ -2192,14 +2223,24 @@ function allvars(L,Vars){
     return Res;
 }
 
-// extract all variables from a formula
-// expects a list
+/**
+ * Extract all variables from a list
+ * 
+ * @param {array} L - formula or list. Variables are defined as alphanumeric strings that start with an uppercase letter.
+ */
 function getvars(L){
     var Res = {};  // used to avoid duplicates
     var Vs=getvars0(L,Res);
     Res =null;
     return Vs;
 }
+
+/**
+ * Recursive subfunction to extract all variables from a list
+ * 
+ * @param {array} L - formula or list. Variables are defined as alphanumeric strings that start with an uppercase letter.
+ * @param {array} Res - already collected variables
+ */
 function getvars0(L,Res){
     if(typet(L)=="Variable"){return [L]; }
     if(type(L)!="Array"){return []; }
@@ -2226,8 +2267,12 @@ function getvars0(L,Res){
     return Object.keys(Res).sort();
 }
 
-// all positive and negative combinations of a list of variables
-// e.g. [X,Y] becomes [ [[not,X],[not,Y]], [[not,X],Y], [X,[not,Y]], [X,Y] ]
+/**
+ * All positive and negative combinations of a list of variables, e.g. [X,Y] becomes [ [[not,X],[not,Y]], [[not,X],Y], [X,[not,Y]], [X,Y] ]
+ * 
+ * @param {array} L - list of variables
+ * @return {array} returns all positive and negative combinations of a list of variables
+ */
 function bcombos(L){
     var Res=[];
     var C =[];
@@ -2241,10 +2286,13 @@ function bcombos(L){
     return Res;
 }
 
-// translate an index of a binary-count ordered list into 
-// the boolean combination of variables.  For example,
-// if the alphabetically sorted variable list is X,Y
-// then [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3
+/**
+ * Translate an index of a binary-count ordered list into the boolean combination of variables.  For example, if the alphabetically sorted variable list is X,Y then [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3.
+ * 
+ * @param {integer} X - index for binary-count ordered list of variable combinations
+ * @param {array} Vs - list of strings of type "Variable"
+ * @return {array} returns the boolean combination of variables that represents the index value
+ */
 function x2v(X, Vs){
     var Varlist=Vs.sort();
     var Res=[and];
@@ -2256,6 +2304,16 @@ function x2v(X, Vs){
     return Res.length<3? Res.length<2? [] : Res[1] : Res;
 }
 
+/**
+ * Convert an index that represents the combination of boolean variables (from the variables list Vs) into a list of variable combinations from the list Varlist. 
+ * 
+ * The idea here is that Vs is a subset of Varlist, so that the index of the sublist might match more than one combination of variables in Varlist.  For example, if Vs=[X,Y] and Varlist=[X,Y,Z], then the index value of 2 represents [[not,X],Y] in the combinations from Vs.  However, that expands into [ [[not,X],Y,[not,Z]], [[not,X],Y,Z] ] relative to the larger set of variables in Varlist.
+ * 
+ * @param {integer} X - index for a binary-count ordered list of variable combinations
+ * @param {array} Vs - list of strings of type "Variable"
+ * @param {array} Varlist - complete list of available strings of type "Variable"
+ * @return {array} returns the boolean combination of variables that represents the index
+ */
 function x2vsub(X, Vs, Varlist){
     var Res=[and];
     var Y = X % Math.pow(2,Varlist.length);
@@ -2268,13 +2326,29 @@ function x2vsub(X, Vs, Varlist){
     return Res;
 }
 
-// convert a term list (i.e. list of variables or their negations) to 
-// a binary count order index.
+
+/**
+ * Convert a term list (i.e. list of variables or their negations) to a binary count order index. For example, [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3
+ * 
+ * First we extract all variables from the list, which we then use to get the index of the particular combination.
+ * 
+ * @param {array} Terms - list of variables or negations of variables
+ * @return {integer} returns the index value of the given boolean combination of variables
+ */
 function v2x(Terms){
     var Vs = getvars(Terms);  // sorted list of variables
     return vars2x(Terms,Vs);
 }
 
+/**
+ * Convert a term list (i.e. list of variables or their negations) to a binary count order index, based on a list of variables. For example, for the variable list [X,Y], we have the following indices for boolean combinations of the variables: [not,X],[not,Y] = 0, [not,X],Y = 1, X,[not,Y]=2 and X,Y=3
+ * 
+ * First we extract all variables from the list, which we then use to get the index of the particular combination.
+ * 
+ * @param {array} T - the given boolean combination variables or negations of variables
+ * @param {array} Vs - the list of possible variables
+ * @return {integer} returns the index value of the given boolean combination of variables
+ */
 function vars2x(T,Vs){
     var Terms = typet(T)=="Variable" || typet(T)==not ? [T] : T;
     var Res = 0;
@@ -2287,14 +2361,24 @@ function vars2x(T,Vs){
     return Res;
 }
 
-// convert the variable combo index to an index
-// of a smaller subset of variables
+/**
+ * Convert index of boolean combination of variables from a (sub)list into the indices for a (super)set of variables. See also :func:`x2vsub`
+ * 
+ * @param {integer} X - index representing a boolean combination of variables 
+ * @param {array} Vs - list of variables used in X
+ * @param {array} Varlist - (larger) list of available variables 
+ * @return {ingeger} - 
+ */
 function x2x(X,Vs,Varlist){
     return v2x(x2vsub(X,Vs,Varlist));
 }
 
-// multiply probabilities in a list
-// just in case some browser doesn't support ES6
+/**
+ * Multiply probabilities in a list using log transformation
+ * 
+ * @param {array} L - list of real values (0 <= x <=1) i.e. probabilities
+ * @return {real} returns the product of the values in the list
+ */
 function product(L){
     var Sum=0;
     for(var i=0; i<L.length; ++i){ Sum += Math.log(L[i]); }
@@ -2303,6 +2387,13 @@ function product(L){
 
 // small version of BitArrays
 // object constructor for BitArray
+/**
+ * Simple BitArray implementation
+ * 
+ * Methods: `zero` to zero out all bits, `setbit` to set a bit, `getbit` to get the value of a bit, `unsetbit` to set a bit to zero, `getones` to get a list of indices of all the bits that are set to `true`, `bitsum` to get the total number of bits that are set to one. 
+ * 
+ * @param {integer} totalbits - total number of bits that the BitArray should cover -- i.e. the minimum size of the bitarray in bits. The actual size is sometimes larger, because the array is implemented in 8-bit increments (bytes).
+ */
 function BitArray(totalbits) {
     this.className = "BitArray";
     this.cells = Math.ceil(totalbits / 8);
